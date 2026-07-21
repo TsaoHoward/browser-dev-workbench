@@ -55,13 +55,61 @@
 
 - Push only the intended branch and confirm its upstream before the first push. Use a normal
   fast-forward push; use `--force-with-lease` only when a rewrite is agreed and necessary.
-- Open a draft PR while work is still in progress. Mark it ready for review only after the slice's
-  acceptance criteria and required validation are complete.
-- PR titles use the same Conventional Commit-style summary as the primary change. The description
-  must state: purpose and scope, non-goals, linked slice or decision record, validation commands and
-  results, deployment/manual checks, risks or rollout notes, and follow-up work.
-- Keep PRs focused. Resolve review threads, update documentation that is affected by the change, and
-  ensure required CI is green before requesting merge.
+- Open a draft PR while implementation, validation, or scope decisions are still in progress.
+- Mark a PR ready for review after all applicable pre-merge acceptance criteria and required
+  validation are complete. Clearly identify any verification that can only occur after merge.
+- Keep PRs focused. Resolve blocking review feedback, update affected documentation, and ensure
+  required CI is green before requesting merge.
+
+PR titles use the same Conventional Commit-style summary as the primary change.
+
+Every PR description must state:
+
+- purpose and scope;
+- validation performed and its result;
+- outstanding deployment or manual checks.
+
+Include non-goals, linked slices or decision records, risks, rollout notes, and follow-up work when
+they materially apply to the change. Do not require empty or irrelevant sections for small,
+self-contained changes.
+
+### Pull request lifecycle and merge gates
+
+A pull request normally moves through these states:
+
+1. **Draft** — implementation, validation, or scope decisions are still in progress.
+2. **Ready for review** — the proposed change is complete enough to review and all applicable
+   pre-merge requirements have been satisfied.
+3. **Merged** — GitHub-required checks and repository merge requirements have passed.
+4. **Post-merge verification** — deployment or environment-specific behavior is verified when it
+   cannot be tested against the pull request branch.
+
+A PR may be marked ready for review when:
+
+- the intended slice or fix is implemented;
+- applicable local validation has passed;
+- affected tests and documentation are updated;
+- known limitations and unfinished follow-up work are disclosed;
+- no known blocking defect remains within the proposed scope.
+
+A PR may be merged when:
+
+- GitHub reports the PR as mergeable;
+- all checks required by the repository ruleset have passed;
+- required approvals, if configured by repository policy, have been obtained;
+- requested changes and blocking review comments have been resolved;
+- the PR is no longer a draft.
+
+An empty review decision is not by itself a merge blocker. Approval is required only when enforced
+by the repository ruleset or explicitly required by the maintainers.
+
+Checks that can only run after a change reaches `main`, including GitHub Pages deployment and
+deployed-origin browser verification, are post-merge checks. They must be disclosed before merge,
+but they do not block merge unless the repository provides an explicit pre-merge deployment
+environment or policy requiring them.
+
+Do not describe deployment as complete until its post-merge checks have passed. Record a failed
+post-merge check and address it through a focused follow-up change or rollback.
 
 ## Dependencies and browser compatibility
 
