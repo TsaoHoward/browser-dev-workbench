@@ -4,21 +4,40 @@ import { buildFileSystemTree } from './file-system-tree';
 
 export type LogSink = (message: string) => void;
 
+const ANSI_ESCAPE_SEQUENCE = new RegExp(
+  // eslint-disable-next-line no-control-regex
+  '[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d/#&.:=?%@~_]+)*)?\\u0007)|(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-nq-uy=><~]))',
+  'g',
+);
+
+export function stripAnsi(message: string): string {
+  return message.replace(ANSI_ESCAPE_SEQUENCE, '');
+}
+
 export class WebContainerRuntime {
   #container: WebContainer | null = null;
   #devProcess: WebContainerProcess | null = null;
+  #mountedPackageJson = '';
+  #installedPackageJson = '';
 
   async prepare(files: WorkspaceFile[], log: LogSink): Promise<void> {
+    await this.stopDevServer();
     const container = await this.#boot(log);
     log('Mounting workspace files...');
     await container.mount(buildFileSystemTree(files));
+    this.#mountedPackageJson = files.find((file) => file.path === 'package.json')?.contents ?? '';
     log(`Mounted ${files.length} files.`);
+  }
+
+  dependenciesReady(files: WorkspaceFile[]): boolean {
+    const packageJson = files.find((file) => file.path === 'package.json')?.contents ?? '';
+    return Boolean(this.#container && packageJson && packageJson === this.#installedPackageJson);
   }
 
   async install(log: LogSink): Promise<void> {
     const container = this.#requireContainer();
     log('$ npm install');
-    const process = await container.spawn('npm', ['install']);
+    const process = await container.spawn('npm', ['install', '--no-progress', '--color=false']);
     this.#pipeOutput(process, log);
     const exitCode = await process.exit;
 
@@ -26,16 +45,14 @@ export class WebContainerRuntime {
       throw new Error(`npm install exited with code ${exitCode}.`);
     }
 
+    this.#installedPackageJson = this.#mountedPackageJson;
     log('Dependencies installed.');
   }
 
   async startDevServer(log: LogSink): Promise<string> {
     const container = this.#requireContainer();
 
-    if (this.#devProcess) {
-      await this.#devProcess.kill();
-      this.#devProcess = null;
-    }
+    await this.stopDevServer();
 
     const serverReady = new Promise<string>((resolve) => {
       const unsubscribe = container.on('server-ready', (_port, url) => {
@@ -44,10 +61,20 @@ export class WebContainerRuntime {
       });
     });
 
-    log('$ npm run dev -- --host 0.0.0.0');
-    this.#devProcess = await container.spawn('npm', ['run', 'dev', '--', '--host', '0.0.0.0']);
-    this.#pipeOutput(this.#devProcess, log);
-    void this.#devProcess.exit.then((exitCode) => {
+    log('$ npm run dev -- --host 0.0.0.0 --clearScreen false');
+    this.#devProcess = await container.spawn('npm', [
+      'run',
+      'dev',
+      '--',
+      '--host',
+      '0.0.0.0',
+      '--clearScreen',
+      'false',
+    ]);
+    const process = this.#devProcess;
+    this.#pipeOutput(process, log);
+    void process.exit.then((exitCode) => {
+      if (this.#devProcess !== process) return;
       log(`Dev server exited with code ${exitCode}.`);
       this.#devProcess = null;
     });
@@ -57,6 +84,13 @@ export class WebContainerRuntime {
 
   async readTextFile(path: string): Promise<string> {
     return this.#requireContainer().fs.readFile(path, 'utf-8');
+  }
+
+  async stopDevServer(): Promise<void> {
+    if (!this.#devProcess) return;
+    const process = this.#devProcess;
+    this.#devProcess = null;
+    await process.kill();
   }
 
   async #boot(log: LogSink): Promise<WebContainer> {
@@ -88,7 +122,7 @@ export class WebContainerRuntime {
     void process.output.pipeTo(
       new WritableStream({
         write(chunk) {
-          log(chunk);
+          log(stripAnsi(chunk));
         },
       }),
     );

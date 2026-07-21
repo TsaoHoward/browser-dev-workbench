@@ -87,6 +87,7 @@
   }
 
   async function installDependencies(): Promise<boolean> {
+    if (runtime.dependenciesReady(files)) return true;
     if (!(await prepareWorkspace())) return false;
     status = 'installing';
     try {
@@ -105,9 +106,20 @@
   }
 
   async function startDevServer(): Promise<void> {
-    if (!(await installDependencies())) return;
-    status = 'starting';
     try {
+      status = 'preparing';
+      await runtime.prepare(files, appendLog);
+
+      if (!runtime.dependenciesReady(files)) {
+        status = 'installing';
+        await runtime.install(appendLog);
+        const lockfile = await runtime.readTextFile('package-lock.json');
+        files = upsertFile(files, { path: 'package-lock.json', contents: lockfile });
+        dirty = true;
+        await saveWorkspace();
+      }
+
+      status = 'starting';
       previewUrl = await runtime.startDevServer(appendLog);
       status = 'running';
       appendLog(`Preview ready at ${previewUrl}`);
