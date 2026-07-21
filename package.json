@@ -13,7 +13,8 @@
     "format:check": "prettier --check .",
     "test": "vitest",
     "test:run": "vitest run",
-    "validate": "npm run lint && npm run format:check && npm run check && npm run test:run && npm run build"
+    "test:pages": "node scripts/verify-pages.mjs --build",
+    "validate": "npm run lint && npm run format:check && npm run check && npm run test:run && npm run build && npm run test:pages"
   },
   "dependencies": {
     "@webcontainer/api": "^1.6.4",
