@@ -4,20 +4,15 @@ A browser-hosted Svelte development workbench deployed as a static GitHub Pages 
 The shell is static; project installation, Node.js commands, and the Vite development server run
 inside the user's browser through WebContainers.
 
-This repository currently proves a narrow vertical slice rather than implementing a complete IDE.
+For the current implementation status, known constraints, and planned work, see the
+[implementation status reference](docs/references/IMPLEMENTATION_STATUS.md).
 
-## Current vertical slice
+## Contributor and agent guidance
 
-1. Load a built-in multi-file Svelte/Vite project.
-2. Edit files in the browser.
-3. Save and restore the workspace with IndexedDB.
-4. Mount the workspace into a WebContainer.
-5. Run `npm install` and retain the generated `package-lock.json` in browser storage.
-6. Run `npm run dev` and stream process output into the runtime log.
-7. Display the WebContainer server URL in an iframe.
-
-The repository shell also includes linting, formatting, Svelte type checking, unit tests, a
-production build, and a GitHub Pages deployment workflow.
+The repository's durable contribution guidance lives in [AGENTS.md](AGENTS.md), the
+[project conventions](docs/PROJECT_CONVENTIONS.md), and the [slice index](docs/slices/README.md).
+Read those documents before changing code; the slice index identifies the current implementation
+target, when one is active, and the approved next slice.
 
 ## Architecture
 
@@ -73,34 +68,3 @@ GitHub Pages cannot configure custom COOP/COEP response headers. The project the
 the MIT-licensed `coi-serviceworker` shim, which registers a service worker and reloads the page to
 serve isolated responses. This is a feasibility mechanism and should be validated on the actual
 Pages origin before treating deployment as complete.
-
-## What is not implemented
-
-- GitHub OAuth, repository loading/saving, commits, branches, pull requests, or Actions dispatch
-- Monaco, language services, or a complete terminal emulator
-- Creating/deleting files from the UI
-- Synchronizing WebContainer filesystem changes other than the generated lockfile back to storage
-- Multiple workspaces or target repositories
-- Non-Svelte projects, large monorepos, collaboration, or a production security model
-- Full offline PWA behavior
-
-`MockGitHubService` intentionally rejects write and workflow operations. A future implementation
-must use an explicit user authorization flow; tokens and client secrets must never enter the
-static bundle.
-
-## Known constraints
-
-- WebContainers are best supported on Chromium. Other browsers are outside this milestone.
-- Cross-origin isolation, service workers, SharedArrayBuffer availability, iframe behavior, and
-  WebContainer networking must be verified on the deployed Pages origin.
-- Browser storage can be evicted and is not a source of record.
-- `npm install` cost depends on the dependency graph, browser memory, CPU, and network.
-- WebContainer boot is limited to one instance per page. The runtime service reuses it.
-- The code textarea is deliberately minimal; introducing Monaco should be a separate milestone.
-
-## Next milestone
-
-Add read-only GitHub repository import using an explicit repository/branch selector, convert the
-imported tree into the workspace model, and define conflict behavior between the saved browser
-snapshot and the selected GitHub commit. Only after that flow is verified should authenticated
-commit, pull request, or workflow dispatch be added.
