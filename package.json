@@ -13,7 +13,9 @@
     "format:check": "prettier --check .",
     "test": "vitest",
     "test:run": "vitest run",
-    "validate": "npm run lint && npm run format:check && npm run check && npm run test:run && npm run build"
+    "test:pages": "node scripts/verify-pages.mjs --build",
+    "test:pages:browser": "node scripts/verify-pages-browser.mjs",
+    "validate": "npm run lint && npm run format:check && npm run check && npm run test:run && npm run build && npm run test:pages"
   },
   "dependencies": {
     "@webcontainer/api": "^1.6.4",
@@ -28,6 +30,7 @@
     "eslint-plugin-svelte": "^3.22.0",
     "fake-indexeddb": "^6.2.5",
     "globals": "^16.0.0",
+    "playwright": "^1.61.1",
     "prettier": "^3.9.6",
     "prettier-plugin-svelte": "^4.1.1",
     "svelte-check": "^4.7.3",
