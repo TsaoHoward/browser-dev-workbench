@@ -1,15 +1,25 @@
-import type { WorkspaceFile, WorkspaceSnapshot } from '../../lib/workspace';
-import { cloneFiles } from '../../lib/workspace';
+import type {
+  ImportedWorkspaceMetadata,
+  WorkspaceFile,
+  WorkspaceSnapshot,
+} from '../../lib/workspace';
+import { cloneFiles, cloneMetadata } from '../../lib/workspace';
 
 export interface WorkspaceRepository {
   load(): Promise<WorkspaceSnapshot | null>;
-  save(files: WorkspaceFile[]): Promise<WorkspaceSnapshot>;
+  save(files: WorkspaceFile[], metadata?: ImportedWorkspaceMetadata): Promise<WorkspaceSnapshot>;
   clear(): Promise<void>;
 }
 
 const DATABASE_NAME = 'browser-dev-workbench';
 const STORE_NAME = 'workspaces';
 const WORKSPACE_KEY = 'default';
+
+interface LegacyWorkspaceSnapshot {
+  files: WorkspaceFile[];
+  savedAt: string;
+  version: 1;
+}
 
 function requestResult<T>(request: IDBRequest<T>): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -30,20 +40,24 @@ export class IndexedDbWorkspaceRepository implements WorkspaceRepository {
 
     try {
       const transaction = database.transaction(STORE_NAME, 'readonly');
-      const result = await requestResult<WorkspaceSnapshot | undefined>(
+      const result = await requestResult<WorkspaceSnapshot | LegacyWorkspaceSnapshot | undefined>(
         transaction.objectStore(STORE_NAME).get(WORKSPACE_KEY),
       );
-      return result ? { ...result, files: cloneFiles(result.files) } : null;
+      return result ? toCurrentSnapshot(result) : null;
     } finally {
       database.close();
     }
   }
 
-  async save(files: WorkspaceFile[]): Promise<WorkspaceSnapshot> {
+  async save(
+    files: WorkspaceFile[],
+    metadata?: ImportedWorkspaceMetadata,
+  ): Promise<WorkspaceSnapshot> {
     const snapshot: WorkspaceSnapshot = {
       files: cloneFiles(files),
       savedAt: new Date().toISOString(),
-      version: 1,
+      version: 2,
+      metadata: cloneMetadata(metadata),
     };
     const database = await this.#open();
 
@@ -68,7 +82,7 @@ export class IndexedDbWorkspaceRepository implements WorkspaceRepository {
   }
 
   #open(): Promise<IDBDatabase> {
-    const request = this.#indexedDb.open(DATABASE_NAME, 1);
+    const request = this.#indexedDb.open(DATABASE_NAME, 2);
     request.onupgradeneeded = () => {
       if (!request.result.objectStoreNames.contains(STORE_NAME)) {
         request.result.createObjectStore(STORE_NAME);
@@ -76,4 +90,15 @@ export class IndexedDbWorkspaceRepository implements WorkspaceRepository {
     };
     return requestResult(request);
   }
+}
+
+function toCurrentSnapshot(
+  snapshot: WorkspaceSnapshot | LegacyWorkspaceSnapshot,
+): WorkspaceSnapshot {
+  return {
+    files: cloneFiles(snapshot.files),
+    savedAt: snapshot.savedAt,
+    version: 2,
+    metadata: snapshot.version === 2 ? cloneMetadata(snapshot.metadata) : undefined,
+  };
 }
