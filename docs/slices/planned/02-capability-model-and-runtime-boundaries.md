@@ -65,6 +65,17 @@ instance. WebContainer also requires `SharedArrayBuffer` and cross-origin isolat
 [WebContainer API](https://webcontainers.io/api), and
 [MDN user-activation guidance](https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/User_activation).
 
+### Existing implementation alignment
+
+The current runtime service already keeps the expensive runtime load on the intent path:
+`WebContainerRuntime` imports `@webcontainer/api` dynamically only inside its private `#boot()`
+method, and `#boot()` is reached through existing runtime actions rather than application mount.
+The service also preserves the required one-container-per-page reuse and rejects a boot when
+`crossOriginIsolated` is false. Slice 02 should retain those properties, place capability discovery
+ahead of the generic runtime error text, and add a small result model that distinguishes
+unavailable, not-yet-probed, user-action-required, ready, and failed states. It should not rewrite
+the runtime merely to introduce an abstraction.
+
 ### Initial local Chromium PoC
 
 On 2026-07-22, a headless Chromium page loaded the current local Vite workbench after the
@@ -81,6 +92,19 @@ confirms the currently deployed build's candidate API exposure and COI-shim outc
 environment only. It did not call a directory picker or boot a WebContainer, and it does not verify
 this unmerged branch's deployment.
 
+### Deployed intent-triggered runtime PoC
+
+Also on 2026-07-22, headless Chromium loaded the current deployed Pages build, waited for
+service-worker control and cross-origin isolation, then used the existing **Install & run dev**
+button. WebContainer booted and mounted the eight-file fixture within the first five-second sample.
+`npm install` remained the active command through the forty-second sample; the dev command started
+at roughly forty-five seconds, and the workbench reached `running` with a WebContainer preview URL
+by fifty seconds. The browser reported no console or page errors.
+
+This establishes one end-to-end full-runtime path for the current small fixture on the published
+build. It does not establish package-manager timing guarantees, support for arbitrary dependency
+graphs, process recovery after reload, other browsers, or the unmerged Slice 02 deployment.
+
 The Storage API can estimate usage/quota and request best-effort persistent storage, but quota and
 eviction behavior remain browser-controlled; OPFS access can fail under storage or private-browsing
 constraints. See [StorageManager](https://developer.mozilla.org/en-US/docs/Web/API/StorageManager),
@@ -89,7 +113,7 @@ and [storage quota and eviction guidance](https://developer.mozilla.org/en-US/do
 
 ### Evidence still required
 
-- Repeat passive and runtime probes on the deployed Pages origin after service-worker control.
+- Repeat passive and runtime probes on the Slice 02 deployment after service-worker control.
 - Test a capability-unavailable path and a runtime-boot failure without blocking editor use.
 - Establish the initial browser evidence matrix; WebContainer's support guidance continues to make
   Chromium the strongest starting point, while other browser behavior must be measured separately.
