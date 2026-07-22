@@ -15,6 +15,11 @@ status, or the approved next implementation work. Do not duplicate this content 
 7. Display the WebContainer server URL in an iframe.
 8. Import a supported public GitHub repository branch into the browser workspace without credentials.
 
+This delivered vertical slice demonstrates only one current capability combination: editor,
+recoverable IndexedDB workspace, and a Chromium-focused WebContainer runtime. The public GitHub
+import is a read-only remote-adapter proof; it is not the workspace's source of record or a
+prerequisite for editing, runtime use, or future browser-local commits.
+
 The repository also provides linting, formatting, Svelte type checking, unit tests, a production
 build, and a GitHub Pages deployment workflow. The local validation suite checks that the production
 artifact uses the Pages base path and contains the COOP/COEP service-worker shim. After deployment,
@@ -24,8 +29,12 @@ console/page errors, cross-origin isolation, and major workbench UI regions.
 
 ## Not implemented
 
-- GitHub OAuth, authenticated repository loading/saving, commits, branches, pull requests, or
-  Actions dispatch.
+- Browser capability registry, OPFS support, selected-folder access, archive interchange, or an
+  explicit reduced/portable runtime fallback.
+- Browser-local Git: repository init, status, diff, staging, local commits, branches, history,
+  checkout, patches, or bundles.
+- Authenticated remote repository loading/saving, fetch/pull/push, GitHub OAuth or PAT handling,
+  pull requests, or Actions dispatch.
 - Monaco, language services, or a complete terminal emulator.
 - Creating or deleting files from the UI.
 - Synchronizing WebContainer filesystem changes other than the generated lockfile back to storage.
@@ -40,25 +49,35 @@ rejected. Generated and sensitive paths (`.git`, `node_modules`, `dist`, `build`
 `coverage`, `.env`, and `.env.*`) are skipped. When a local snapshot or unsaved change exists, the
 user explicitly chooses to replace the saved snapshot or retain it until a later save.
 
-A future write capability must use an explicit user authorization flow; tokens and client secrets
-must never enter the static bundle. The planned publish route is GitHub App device flow with a token
-retained only in running page memory, not a backend or persistent browser credential store.
+A future remote write capability must use an explicit user authorization flow; tokens and client
+secrets must never enter the static bundle. Authentication is an optional Remote Repository Adapter
+concern, not a prerequisite for Workspace Core, Runtime Adapters, or browser-local Version Control.
 
 ## Known constraints and verification status
 
-- WebContainers are best supported on Chromium. Other browsers are outside this milestone.
+- WebContainers are currently evidenced only on Chromium. Capability-based reduced and portable
+  workflows are planned but not yet delivered; other-browser behavior remains unverified.
 - GitHub Pages deployment needs the COOP/COEP service-worker shim. Deployed HTML and static resource
   availability plus a lightweight browser smoke test are checked automatically after deployment;
   WebContainer boot, package installation, dev-server readiness, and iframe preview still require
   focused browser verification on the deployed Pages origin.
-- Browser storage can be evicted and is not a source of record.
+- Browser storage can be evicted. It may restore files and metadata when available, but it is not a
+  remote source of record and does not restore running processes, terminal sessions, or dev servers.
 - `npm install` cost depends on the dependency graph, browser memory, CPU, and network.
 - WebContainer boot is limited to one instance per page. The runtime service reuses it.
 - The code textarea is deliberately minimal; introducing Monaco should be a separate milestone.
 
 ## Approved next work
 
-The next planned capability is [session-only GitHub publish](../slices/planned/02-session-only-github-publish.md),
-using device flow to create one reviewed commit on a new branch. Its authorization, permission,
-device-flow, branch, diff, and browser-threat-model decisions must be agreed before activation.
-Pull requests and workflow dispatch remain out of scope.
+No slice is active. The planned sequence is intentionally capability-first:
+
+1. [Slice 02 — Capability model and runtime boundaries](../slices/planned/02-capability-model-and-runtime-boundaries.md)
+2. [Slice 03 — Persistent browser workspace](../slices/planned/03-persistent-browser-workspace.md)
+3. [Slice 04 — Browser-local version control](../slices/planned/04-browser-local-version-control.md)
+4. [Slice 05 — Portable interchange](../slices/planned/05-portable-interchange.md)
+5. [Slice 06 — Optional remote synchronization](../slices/planned/06-optional-remote-synchronization.md)
+
+The former session-only GitHub publish plan is [superseded historical research](../slices/archive/02-session-only-github-publish.md),
+not approved work. Its remote-authentication conclusions must be revalidated against official
+documentation and a deployed-browser PoC before an implementation slice adopts them. Pull requests
+and workflow dispatch remain out of scope.

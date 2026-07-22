@@ -12,12 +12,15 @@
 
 ## Service and persistence boundaries
 
-- Browser infrastructure must be accessed through a service interface that can be tested or
-  replaced. Do not call IndexedDB, WebContainer, or a future GitHub client throughout components.
+- Browser infrastructure must be accessed through a focused adapter interface that can be tested or
+  replaced. Do not call IndexedDB, OPFS, File System Access, WebContainer, browser-local Git, or a
+  remote repository client throughout components.
 - Treat `WorkspaceFile` paths and contents as untrusted import data. Validate path behavior before
   mounting a workspace into a WebContainer.
-- IndexedDB stores a browser-local snapshot only. It can be evicted and must not be presented as a
-  substitute for a repository commit.
+- Recoverable browser storage and runtime state are distinct: files, workspace metadata, and local
+  repository objects may be restored when storage survives; processes, terminal sessions, and dev
+  servers must be restarted after reload. Browser storage can be evicted and must not be presented
+  as a substitute for a repository commit.
 - Persist only intentional workspace state. Define migration behavior before changing a stored
   snapshot format or database schema.
 
@@ -132,17 +135,22 @@ a regression shows that the current boundary is insufficient.
 ## Dependencies and browser compatibility
 
 - Pin behavior-sensitive upgrades in a dedicated slice and record their compatibility result.
-- WebContainer support is currently scoped to current Chromium-based browsers. Treat other browser
-  support as unverified unless a slice explicitly expands it.
+- Capability detection, rather than browser-name product modes, determines what the workbench can
+  offer. WebContainer remains a current-Chromium full-runtime capability; unavailable capabilities
+  must leave an honest reduced or portable workflow rather than making the editor unusable. Support
+  claims require an actual browser PoC or applicable official documentation.
 - GitHub Pages needs the COOP/COEP service-worker shim for this prototype. Verify service-worker
   reload, cross-origin isolation, WebContainer boot, package installation, dev-server readiness,
   and iframe preview on the deployed origin before declaring deployment complete.
 
-## GitHub credentials and network access
+## Remote credentials and network access
 
 - No access token, refresh token, OAuth client secret, or equivalent credential may enter the
   static bundle, IndexedDB, repository, logs, or tests.
-- Read-only repository import must use an explicit repository and branch target, and must define
-  how it interacts with a saved local snapshot.
-- Any authenticated write needs an explicit authorization flow, least-privilege scope, clear user
-  intent, and a reviewable security design before implementation.
+- Read-only repository import must use an explicit target and define how it interacts with a saved
+  browser-local workspace and repository. It is a remote-adapter operation, not a persistence or
+  local-commit prerequisite.
+- Any authenticated remote write needs an explicit authorization flow, least-privilege scope, clear
+  user intent, and a reviewable security design before implementation. A session-only PAT may be a
+  narrowly scoped transport experiment, but credential handling must not leak into Workspace Core
+  or browser-local Version Control.
