@@ -53,3 +53,7 @@ jobs:
           node-version: 24
       - name: Verify deployed Pages resources
         run: node scripts/verify-pages.mjs "${{ needs.deploy.outputs.page_url }}"
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Verify deployed Pages browser smoke
+        run: npm run test:pages:browser -- "${{ needs.deploy.outputs.page_url }}"

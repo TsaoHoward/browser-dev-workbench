@@ -18,7 +18,8 @@ The repository also provides linting, formatting, Svelte type checking, unit tes
 build, and a GitHub Pages deployment workflow. The local validation suite checks that the production
 artifact uses the Pages base path and contains the COOP/COEP service-worker shim. After deployment,
 the Pages workflow fetches the deployed HTML and verifies that its module, stylesheet, and service
-worker resources are available.
+worker resources are available, then runs a lightweight Chromium smoke test for the mounted app,
+console/page errors, cross-origin isolation, and major workbench UI regions.
 
 ## Not implemented
 
@@ -38,9 +39,9 @@ bundle.
 
 - WebContainers are best supported on Chromium. Other browsers are outside this milestone.
 - GitHub Pages deployment needs the COOP/COEP service-worker shim. Deployed HTML and static resource
-  availability are checked automatically after deployment; service-worker reload, cross-origin
-  isolation, WebContainer boot, package installation, dev-server readiness, and iframe preview still
-  require browser verification on the deployed Pages origin.
+  availability plus a lightweight browser smoke test are checked automatically after deployment;
+  WebContainer boot, package installation, dev-server readiness, and iframe preview still require
+  focused browser verification on the deployed Pages origin.
 - Browser storage can be evicted and is not a source of record.
 - `npm install` cost depends on the dependency graph, browser memory, CPU, and network.
 - WebContainer boot is limited to one instance per page. The runtime service reuses it.
