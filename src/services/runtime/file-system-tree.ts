@@ -1,11 +1,13 @@
 import type { FileSystemTree } from '@webcontainer/api';
 import type { WorkspaceFile } from '../../lib/workspace';
+import { validateWorkspaceFiles } from '../../lib/workspace';
 
 interface MutableDirectory {
   [name: string]: { directory: MutableDirectory } | { file: { contents: string } };
 }
 
 export function buildFileSystemTree(files: WorkspaceFile[]): FileSystemTree {
+  validateWorkspaceFiles(files);
   const root: MutableDirectory = {};
 
   for (const workspaceFile of files) {

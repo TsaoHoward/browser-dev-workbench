@@ -21,7 +21,7 @@ describe('IndexedDbWorkspaceRepository', () => {
     input[0].contents = 'mutated';
     const loaded = await repository.load();
 
-    expect(saved.version).toBe(1);
+    expect(saved.version).toBe(2);
     expect(loaded?.files).toEqual([{ path: 'src/App.svelte', contents: '<h1>Hello</h1>' }]);
   });
 
@@ -32,5 +32,35 @@ describe('IndexedDbWorkspaceRepository', () => {
     await repository.clear();
 
     await expect(repository.load()).resolves.toBeNull();
+  });
+
+  it('migrates a version one snapshot without import metadata', async () => {
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open('browser-dev-workbench', 1);
+      request.onupgradeneeded = () => request.result.createObjectStore('workspaces');
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    database
+      .transaction('workspaces', 'readwrite')
+      .objectStore('workspaces')
+      .put(
+        {
+          files: [{ path: 'package.json', contents: '{}' }],
+          savedAt: '2026-07-22T00:00:00.000Z',
+          version: 1,
+        },
+        'default',
+      );
+    database.close();
+
+    const repository = new IndexedDbWorkspaceRepository(indexedDB);
+
+    await expect(repository.load()).resolves.toEqual({
+      files: [{ path: 'package.json', contents: '{}' }],
+      savedAt: '2026-07-22T00:00:00.000Z',
+      version: 2,
+      metadata: undefined,
+    });
   });
 });

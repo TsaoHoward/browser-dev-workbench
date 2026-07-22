@@ -25,7 +25,7 @@ Svelte workbench UI
 Application boundary
   ├─ IndexedDbWorkspaceRepository
   ├─ WebContainerRuntime
-  └─ GitHubService (non-privileged mock)
+  └─ PublicGitHubImportService (read-only)
           │
 Browser infrastructure
   ├─ IndexedDB

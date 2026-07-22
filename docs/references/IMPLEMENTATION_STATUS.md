@@ -13,6 +13,7 @@ status, or the approved next implementation work. Do not duplicate this content 
 5. Run `npm install` and retain the generated `package-lock.json` in browser storage.
 6. Run `npm run dev` and stream process output into the runtime log.
 7. Display the WebContainer server URL in an iframe.
+8. Import a supported public GitHub repository branch into the browser workspace without credentials.
 
 The repository also provides linting, formatting, Svelte type checking, unit tests, a production
 build, and a GitHub Pages deployment workflow. The local validation suite checks that the production
@@ -23,7 +24,8 @@ console/page errors, cross-origin isolation, and major workbench UI regions.
 
 ## Not implemented
 
-- GitHub OAuth, repository loading/saving, commits, branches, pull requests, or Actions dispatch.
+- GitHub OAuth, authenticated repository loading/saving, commits, branches, pull requests, or
+  Actions dispatch.
 - Monaco, language services, or a complete terminal emulator.
 - Creating or deleting files from the UI.
 - Synchronizing WebContainer filesystem changes other than the generated lockfile back to storage.
@@ -31,10 +33,16 @@ console/page errors, cross-origin isolation, and major workbench UI regions.
 - Non-Svelte projects, large monorepos, collaboration, a production security model, or full offline
   PWA behavior.
 
-`MockGitHubService` intentionally rejects write and workflow operations. A future implementation
-must use an explicit user authorization flow; tokens and client secrets must never enter the static
-bundle. The planned publish route is GitHub App device flow with a token retained only in running
-page memory, not a backend or persistent browser credential store.
+Public imports use only an explicit owner, repository, and branch, resolve the branch to an immutable
+commit SHA, and do not use credentials. Imports are limited to 200 regular UTF-8 text files, 1 MiB
+per file, and 5 MiB total; binary files, symlinks, submodules, oversized or truncated trees are
+rejected. Generated and sensitive paths (`.git`, `node_modules`, `dist`, `build`, `.svelte-kit`,
+`coverage`, `.env`, and `.env.*`) are skipped. When a local snapshot or unsaved change exists, the
+user explicitly chooses to replace the saved snapshot or retain it until a later save.
+
+A future write capability must use an explicit user authorization flow; tokens and client secrets
+must never enter the static bundle. The planned publish route is GitHub App device flow with a token
+retained only in running page memory, not a backend or persistent browser credential store.
 
 ## Known constraints and verification status
 
@@ -50,9 +58,7 @@ page memory, not a backend or persistent browser credential store.
 
 ## Approved next work
 
-The next planned slice is [read-only GitHub import](../slices/planned/01-readonly-github-import.md).
-It must resolve its listed access, supported-file, snapshot-conflict, metadata, and UI-state
-decisions before activation. Once it is verified, the next planned capability is
-[session-only GitHub publish](../slices/planned/02-session-only-github-publish.md), using device
-flow to create one reviewed commit on a new branch. Pull requests and workflow dispatch remain
-out of scope.
+The next planned capability is [session-only GitHub publish](../slices/planned/02-session-only-github-publish.md),
+using device flow to create one reviewed commit on a new branch. Its authorization, permission,
+device-flow, branch, diff, and browser-threat-model decisions must be agreed before activation.
+Pull requests and workflow dispatch remain out of scope.

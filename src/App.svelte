@@ -1,12 +1,21 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { starterProject } from './fixtures/starter-project';
-  import { cloneFiles, upsertFile, type WorkspaceFile } from './lib/workspace';
+  import {
+    cloneFiles,
+    upsertFile,
+    type ImportedWorkspaceMetadata,
+    type WorkspaceFile,
+  } from './lib/workspace';
+  import { shouldReplaceSnapshot, type SnapshotConflictChoice } from './lib/import-conflict';
+  import {
+    PublicGitHubImportService,
+    type RepositoryTarget,
+  } from './services/github/github-service';
   import { IndexedDbWorkspaceRepository } from './services/persistence/workspace-repository';
   import { WebContainerRuntime } from './services/runtime/webcontainer-runtime';
 
   type RuntimeStatus = 'idle' | 'preparing' | 'installing' | 'starting' | 'running' | 'error';
-
   let files: WorkspaceFile[] = cloneFiles(starterProject);
   let selectedPath = 'src/App.svelte';
   let status: RuntimeStatus = 'idle';
@@ -15,11 +24,21 @@
   let persistenceMessage = 'Browser workspace not yet saved';
   let dirty = false;
   let repository: IndexedDbWorkspaceRepository | null = null;
+  let importedMetadata: ImportedWorkspaceMetadata | undefined;
+  let hasSavedSnapshot = false;
+  let importDialogOpen = false;
+  let importTarget: RepositoryTarget = { owner: '', repository: '', branch: 'main' };
+  let snapshotConflictChoice: SnapshotConflictChoice = 'replace';
+  let importLoading = false;
+  let importError = '';
+  let ignoredImportPathCount = 0;
 
   const runtime = new WebContainerRuntime();
+  const github = new PublicGitHubImportService();
 
   $: selectedFile = files.find((file) => file.path === selectedPath);
   $: busy = ['preparing', 'installing', 'starting'].includes(status);
+  $: hasImportConflict = hasSavedSnapshot || dirty;
 
   onMount(async () => {
     repository = new IndexedDbWorkspaceRepository();
@@ -27,6 +46,9 @@
       const saved = await repository.load();
       if (saved) {
         files = saved.files;
+        importedMetadata = saved.metadata;
+        ignoredImportPathCount = saved.metadata?.ignoredPathCount ?? 0;
+        hasSavedSnapshot = true;
         selectedPath = files.some((file) => file.path === selectedPath)
           ? selectedPath
           : (files[0]?.path ?? '');
@@ -54,8 +76,9 @@
   async function saveWorkspace(): Promise<void> {
     if (!repository) return;
     try {
-      const snapshot = await repository.save(files);
+      const snapshot = await repository.save(files, importedMetadata);
       dirty = false;
+      hasSavedSnapshot = true;
       persistenceMessage = `Saved ${files.length} files ${formatTimestamp(snapshot.savedAt)}`;
       appendLog('Workspace saved to IndexedDB.');
     } catch (error) {
@@ -68,9 +91,75 @@
     selectedPath = 'src/App.svelte';
     previewUrl = '';
     dirty = true;
+    importedMetadata = undefined;
+    hasSavedSnapshot = false;
     if (repository) await repository.clear();
     persistenceMessage = 'Example restored; save to persist it';
     appendLog('Restored the built-in example workspace.');
+  }
+
+  function openImportDialog(): void {
+    importError = '';
+    ignoredImportPathCount = 0;
+    importDialogOpen = true;
+  }
+
+  function closeImportDialog(): void {
+    if (!importLoading) {
+      importDialogOpen = false;
+      importError = '';
+    }
+  }
+
+  async function importRepository(): Promise<void> {
+    if (!repository) return;
+
+    importLoading = true;
+    importError = '';
+    try {
+      const imported = await github.importWorkspace({
+        owner: importTarget.owner.trim(),
+        repository: importTarget.repository.trim(),
+        branch: importTarget.branch.trim(),
+      });
+      const metadata: ImportedWorkspaceMetadata = {
+        ...imported.metadata,
+        snapshotConflict: snapshotConflictChoice === 'replace' ? 'replaced' : 'retained',
+        ignoredPathCount: imported.ignoredPaths.length,
+      };
+
+      files = imported.files;
+      selectedPath = files[0]?.path ?? '';
+      previewUrl = '';
+      importedMetadata = metadata;
+      ignoredImportPathCount = imported.ignoredPaths.length;
+
+      if (!shouldReplaceSnapshot(hasImportConflict, snapshotConflictChoice)) {
+        dirty = true;
+        persistenceMessage =
+          'Saved local snapshot retained; save this import when you are ready to replace it';
+        appendLog(`Imported ${files.length} files without changing the saved local snapshot.`);
+      } else {
+        const snapshot = await repository.save(files, metadata);
+        dirty = false;
+        hasSavedSnapshot = true;
+        persistenceMessage = `Imported ${files.length} files and replaced the saved snapshot ${formatTimestamp(snapshot.savedAt)}`;
+        appendLog(
+          `Imported ${files.length} files from ${metadata.owner}/${metadata.repository}@${metadata.commitSha.slice(0, 12)}.`,
+        );
+      }
+
+      if (imported.ignoredPaths.length) {
+        appendLog(
+          `Skipped ${imported.ignoredPaths.length} ignored path${imported.ignoredPaths.length === 1 ? '' : 's'}.`,
+        );
+      }
+      importDialogOpen = false;
+    } catch (error) {
+      importError = errorMessage(error);
+    } finally {
+      importLoading = false;
+    }
   }
 
   async function prepareWorkspace(): Promise<boolean> {
@@ -159,6 +248,9 @@
       <i></i>
       {globalThis.crossOriginIsolated ? 'isolated runtime ready' : 'isolation pending'}
     </span>
+    <button class="secondary" onclick={openImportDialog} disabled={!repository || busy}
+      >Import GitHub</button
+    >
     <button class="secondary" onclick={resetWorkspace} disabled={busy}>Reset example</button>
     <button class="primary" onclick={saveWorkspace} disabled={!repository || busy}>
       {dirty ? 'Save workspace*' : 'Workspace saved'}
@@ -187,6 +279,24 @@
       <strong>Browser storage</strong>
       <span>{persistenceMessage}</span>
     </div>
+    {#if importedMetadata}
+      <div class="import-note">
+        <strong>GitHub import</strong>
+        <span
+          >{importedMetadata.owner}/{importedMetadata.repository} · {importedMetadata.branch}</span
+        >
+        <code title={importedMetadata.commitSha}>{importedMetadata.commitSha.slice(0, 12)}</code>
+        <span>
+          {importedMetadata.snapshotConflict === 'replaced'
+            ? 'Saved snapshot replaced'
+            : 'Previous snapshot retained'}
+        </span>
+        {#if ignoredImportPathCount}
+          <span>{ignoredImportPathCount} ignored path{ignoredImportPathCount === 1 ? '' : 's'}</span
+          >
+        {/if}
+      </div>
+    {/if}
   </aside>
 
   <section class="editor panel">
@@ -236,3 +346,85 @@
     <pre aria-live="polite">{logs.length ? logs.join('\n') : 'No output yet.'}</pre>
   </section>
 </main>
+
+{#if importDialogOpen}
+  <div class="dialog-backdrop">
+    <dialog open class="import-dialog" aria-labelledby="import-dialog-title">
+      <div class="dialog-heading">
+        <div>
+          <span class="eyebrow">Public GitHub repository</span>
+          <h1 id="import-dialog-title">Import a branch</h1>
+        </div>
+        <button
+          class="close-button"
+          aria-label="Close import dialog"
+          onclick={closeImportDialog}
+          disabled={importLoading}>×</button
+        >
+      </div>
+      <p class="dialog-copy">
+        GitHub is read without credentials. The import uses the selected branch's immutable commit
+        and never writes to GitHub.
+      </p>
+      <div class="target-fields">
+        <label>
+          Owner
+          <input
+            bind:value={importTarget.owner}
+            placeholder="sveltejs"
+            autocomplete="off"
+            disabled={importLoading}
+          />
+        </label>
+        <label>
+          Repository
+          <input
+            bind:value={importTarget.repository}
+            placeholder="svelte"
+            autocomplete="off"
+            disabled={importLoading}
+          />
+        </label>
+        <label>
+          Branch
+          <input
+            bind:value={importTarget.branch}
+            placeholder="main"
+            autocomplete="off"
+            disabled={importLoading}
+          />
+        </label>
+      </div>
+      <p class="import-limits">
+        Text-only UTF-8 files: up to 200 files, 1 MiB per file, 5 MiB total. Symlinks, submodules,
+        binary files, and oversized trees are rejected. Generated and sensitive paths such as <code
+          >node_modules</code
+        >, <code>dist</code>, and <code>.env*</code> are skipped.
+      </p>
+      {#if hasImportConflict}
+        <fieldset class="conflict-choice" disabled={importLoading}>
+          <legend>Current browser workspace</legend>
+          <label>
+            <input type="radio" bind:group={snapshotConflictChoice} value="replace" />
+            Replace the saved snapshot with this import
+          </label>
+          <label>
+            <input type="radio" bind:group={snapshotConflictChoice} value="retain" />
+            Retain the saved snapshot; keep this import only until you explicitly save it
+          </label>
+        </fieldset>
+      {/if}
+      {#if importError}
+        <p class="import-error" role="alert">{importError}</p>
+      {/if}
+      <div class="dialog-actions">
+        <button class="secondary" onclick={closeImportDialog} disabled={importLoading}
+          >Cancel</button
+        >
+        <button class="primary" onclick={importRepository} disabled={importLoading}>
+          {importLoading ? 'Importing…' : 'Review & import'}
+        </button>
+      </div>
+    </dialog>
+  </div>
+{/if}
