@@ -83,6 +83,28 @@ startup promise. Slice 02 must define an explicit terminal result for server-rea
 exit, cancellation, and bounded timeout. This is an operational failure after a usable runtime
 probe, not evidence that the browser capability itself is unavailable.
 
+### Candidate result matrix
+
+The registry should report a capability result and keep operation outcomes separate. The following
+is the proposed activation contract, not a final type design:
+
+| Capability or operation           | Passive result                                                                     | Intent-triggered terminal result                                              | Required user-facing outcome                                                                                  |
+| --------------------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Editor / Workspace Core           | `ready` once the application mounts                                                | n/a                                                                           | Editing remains usable whenever the page itself loads.                                                        |
+| Recoverable IndexedDB workspace   | `not-probed` if API presence is unknown; otherwise `available`                     | `ready`, `failed`, or `quota-exceeded` after load/save                        | Keep the in-memory workspace usable; offer actionable recovery or export guidance on failure.                 |
+| OPFS workspace/repository storage | `unavailable` or `available` by API presence                                       | `ready` or `failed` after the storage action                                  | Do not imply persistence merely from API presence.                                                            |
+| Selected local folder             | `unavailable` or `user-action-required`                                            | `ready`, `cancelled`, `permission-denied`, or `failed`                        | Open a picker only from a trusted user action; cancellation is not an error.                                  |
+| WebContainer runtime              | `unavailable` if required isolation/SAB prerequisites fail; otherwise `not-probed` | `ready` after boot, or `boot-failed`                                          | Keep editor and portable actions available; give reload/deployment guidance only for the failed prerequisite. |
+| Runtime mount / install           | n/a after runtime is ready                                                         | `mount-failed`, `command-failed`, `cancelled`, or `ready`                     | Report the operation and retain the browser workspace unchanged.                                              |
+| Dev server                        | n/a after runtime is ready                                                         | `ready`, `server-exited-before-ready`, `server-start-timeout`, or `cancelled` | Never leave the UI indefinitely in “starting”; preserve log context without treating it as capability loss.   |
+| Worker or WASM fallback           | `unavailable` or `available` by API presence                                       | `ready` or adapter-specific `failed` when later requested                     | Present only actions the delivered adapter can actually run.                                                  |
+
+`unavailable` means an observed prerequisite is absent; `not-probed` means it may be usable but no
+costly or permission-gated action has run; `available` is a passive indication only; and `ready`
+requires the applicable usable probe. Raw exceptions remain internal diagnostic data and must be
+mapped to redacted actionable messages. The matrix deliberately does not use a browser name as a
+state.
+
 ### Initial local Chromium PoC
 
 On 2026-07-22, a headless Chromium page loaded the current local Vite workbench after the
@@ -130,6 +152,9 @@ and [storage quota and eviction guidance](https://developer.mozilla.org/en-US/do
 ## Acceptance criteria
 
 - Capability detection is unit-tested with present, absent, and probe-failure dependencies.
+- Unit tests cover the proposed result matrix, including the distinction between unavailable,
+  not-probed, user cancellation, runtime boot failure, command failure, early dev-server exit, and
+  timeout.
 - The UI or diagnostics makes the effective workflow and unavailable prerequisites understandable
   without presenting separate hard-coded products.
 - Current WebContainer and IndexedDB behavior remains functional on the verified deployment path;
