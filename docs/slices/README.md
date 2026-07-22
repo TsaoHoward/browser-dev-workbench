@@ -9,9 +9,10 @@ No implementation slice is active. Activate the next slice only after its open d
 
 ## Approved next slice
 
-| Slice                                                                | Status  | Purpose                                                          |
-| -------------------------------------------------------------------- | ------- | ---------------------------------------------------------------- |
-| [01 — Read-only GitHub import](planned/01-readonly-github-import.md) | planned | Import an explicit repository/branch into the browser workspace. |
+| Slice                                                                         | Status  | Purpose                                                          |
+| ----------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------- |
+| [01 — Read-only GitHub import](planned/01-readonly-github-import.md)          | planned | Import an explicit repository/branch into the browser workspace. |
+| [02 — Session-only GitHub publish](planned/02-session-only-github-publish.md) | planned | Publish reviewed changes through GitHub device flow.             |
 
 ## Completed slices
 

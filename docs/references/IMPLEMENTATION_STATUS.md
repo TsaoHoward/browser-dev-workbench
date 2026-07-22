@@ -33,7 +33,8 @@ console/page errors, cross-origin isolation, and major workbench UI regions.
 
 `MockGitHubService` intentionally rejects write and workflow operations. A future implementation
 must use an explicit user authorization flow; tokens and client secrets must never enter the static
-bundle.
+bundle. The planned publish route is GitHub App device flow with a token retained only in running
+page memory, not a backend or persistent browser credential store.
 
 ## Known constraints and verification status
 
@@ -51,5 +52,7 @@ bundle.
 
 The next planned slice is [read-only GitHub import](../slices/planned/01-readonly-github-import.md).
 It must resolve its listed access, supported-file, snapshot-conflict, metadata, and UI-state
-decisions before activation. Authenticated commits, pull requests, and workflow dispatch remain
-out of scope until the read-only flow is verified.
+decisions before activation. Once it is verified, the next planned capability is
+[session-only GitHub publish](../slices/planned/02-session-only-github-publish.md), using device
+flow to create one reviewed commit on a new branch. Pull requests and workflow dispatch remain
+out of scope.
