@@ -51,6 +51,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      - run: npm ci
       - name: Verify deployed Pages resources
         run: node scripts/verify-pages.mjs "${{ needs.deploy.outputs.page_url }}"
       - name: Install Chromium
