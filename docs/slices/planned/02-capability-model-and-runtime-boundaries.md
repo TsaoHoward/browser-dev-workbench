@@ -134,6 +134,14 @@ This establishes one end-to-end full-runtime path for the current small fixture 
 build. It does not establish package-manager timing guarantees, support for arbitrary dependency
 graphs, process recovery after reload, other browsers, or the unmerged Slice 02 deployment.
 
+### Reduced-path primitive PoC
+
+On the same deployed-origin Chromium session, an in-page probe created a Blob-backed Web Worker,
+exchanged a message, and then terminated it. It also instantiated the minimal valid WASM binary.
+Both operations completed successfully. This is evidence that the worker and WASM primitives are
+usable in that environment; it neither selects a validation toolchain nor proves any language
+service, package, or reduced-runtime workflow.
+
 The Storage API can estimate usage/quota and request best-effort persistent storage, but quota and
 eviction behavior remain browser-controlled; OPFS access can fail under storage or private-browsing
 constraints. See [StorageManager](https://developer.mozilla.org/en-US/docs/Web/API/StorageManager),
