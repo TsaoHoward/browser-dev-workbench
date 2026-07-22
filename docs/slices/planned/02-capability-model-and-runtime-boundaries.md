@@ -148,6 +148,12 @@ constraints. See [StorageManager](https://developer.mozilla.org/en-US/docs/Web/A
 [OPFS `getDirectory()`](https://developer.mozilla.org/en-US/docs/Web/API/StorageManager/getDirectory),
 and [storage quota and eviction guidance](https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria).
 
+An additional deployed-origin Chromium probe successfully obtained the OPFS root
+`FileSystemDirectoryHandle` without creating a file. In that clean headless profile,
+`navigator.storage.persisted()` returned `false`; the probe intentionally did not call
+`navigator.storage.persist()`. Treat this as an available OPFS operation with best-effort storage,
+not a persistence grant or protection from eviction.
+
 ### Evidence still required
 
 - Repeat passive and runtime probes on the Slice 02 deployment after service-worker control.
