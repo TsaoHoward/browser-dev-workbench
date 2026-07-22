@@ -76,6 +76,13 @@ ahead of the generic runtime error text, and add a small result model that disti
 unavailable, not-yet-probed, user-action-required, ready, and failed states. It should not rewrite
 the runtime merely to introduce an abstraction.
 
+Code review also identifies a runtime-adapter contract risk for activation: installation rejects
+when its process exits non-zero, but dev-server startup currently resolves only on `server-ready`.
+If that process exits before readiness, the service logs the exit but does not reject the pending
+startup promise. Slice 02 must define an explicit terminal result for server-ready, early process
+exit, cancellation, and bounded timeout. This is an operational failure after a usable runtime
+probe, not evidence that the browser capability itself is unavailable.
+
 ### Initial local Chromium PoC
 
 On 2026-07-22, a headless Chromium page loaded the current local Vite workbench after the
