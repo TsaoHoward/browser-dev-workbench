@@ -41,6 +41,61 @@ steps they enable, and where runtime, storage, version-control, and remote adapt
   replacement.
 - Claiming parity across browsers without a targeted PoC.
 
+## Pre-activation research record — 2026-07-22
+
+This record informs activation; it does not activate the slice or approve an implementation.
+
+### Proposed probe policy
+
+Use two phases rather than treating API presence as success:
+
+1. **Passive capability detection** may check secure context, `crossOriginIsolated`,
+   `SharedArrayBuffer`, service-worker support/control, IndexedDB, `navigator.storage`, workers,
+   WebAssembly, OPFS API presence, and File System Access API presence. It must not open a picker,
+   boot a runtime, install packages, or create workspace data.
+2. **Intent-triggered usable probes** run only for the requested workflow: storage estimation and
+   OPFS access for persistent storage; directory selection from an explicit click; and
+   `WebContainer.boot()` only when the user starts a runtime action. Cache the result for the page
+   session and report a redacted failure reason.
+
+This boundary follows the platform constraints: File System Access pickers require transient user
+activation, while WebContainer documents `boot()` as expensive and allows only one concurrent
+instance. WebContainer also requires `SharedArrayBuffer` and cross-origin isolation. See the
+[WebContainer quickstart](https://webcontainers.io/guides/quickstart),
+[WebContainer API](https://webcontainers.io/api), and
+[MDN user-activation guidance](https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/User_activation).
+
+### Initial local Chromium PoC
+
+On 2026-07-22, a headless Chromium page loaded the current local Vite workbench after the
+COI-service-worker reload. It reported `true` for secure context, cross-origin isolation,
+`SharedArrayBuffer`, service-worker support and control, IndexedDB, StorageManager,
+`StorageManager.estimate`, `StorageManager.getDirectory`, `showDirectoryPicker`, Worker, and
+WebAssembly. `navigator.storage.estimate()` returned a finite origin quota. This is evidence that
+the current local path exposes the candidate APIs; it is not a cross-browser compatibility claim,
+a storage durability guarantee, a user-folder permission grant, or deployed-Pages verification.
+
+The same passive snapshot then ran on the current deployed Pages origin in headless Chromium after
+service-worker control and reported the same `true` results plus a finite storage estimate. That
+confirms the currently deployed build's candidate API exposure and COI-shim outcome in this test
+environment only. It did not call a directory picker or boot a WebContainer, and it does not verify
+this unmerged branch's deployment.
+
+The Storage API can estimate usage/quota and request best-effort persistent storage, but quota and
+eviction behavior remain browser-controlled; OPFS access can fail under storage or private-browsing
+constraints. See [StorageManager](https://developer.mozilla.org/en-US/docs/Web/API/StorageManager),
+[OPFS `getDirectory()`](https://developer.mozilla.org/en-US/docs/Web/API/StorageManager/getDirectory),
+and [storage quota and eviction guidance](https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria).
+
+### Evidence still required
+
+- Repeat passive and runtime probes on the deployed Pages origin after service-worker control.
+- Test a capability-unavailable path and a runtime-boot failure without blocking editor use.
+- Establish the initial browser evidence matrix; WebContainer's support guidance continues to make
+  Chromium the strongest starting point, while other browser behavior must be measured separately.
+- Verify that a selected-folder probe runs only inside a user-initiated interaction and distinguish
+  API absence, user cancellation, permission denial, and operational failure.
+
 ## Acceptance criteria
 
 - Capability detection is unit-tested with present, absent, and probe-failure dependencies.
