@@ -110,10 +110,11 @@ A PR may be merged when:
 An empty review decision is not by itself a merge blocker. Approval is required only when enforced
 by the repository ruleset or explicitly required by the maintainers.
 
-Checks that can only run after a change reaches `main`, including GitHub Pages deployment and
-deployed-origin browser verification, are post-merge checks. They must be disclosed before merge,
-but they do not block merge unless the repository provides an explicit pre-merge deployment
-environment or policy requiring them.
+GitHub Pages deployment and deployed-origin browser verification can only run after a change reaches
+`main`; they are post-merge release checks. The pull-request workflow must instead run its browser
+smoke suite against a locally served production artifact. This is a pre-merge gate for the artifact,
+not a claim that the public Pages origin has been deployed. Post-merge deployed-origin checks remain
+required before describing deployment as complete.
 
 Do not describe deployment as complete until its post-merge checks have passed. Record a failed
 post-merge check and address it through a focused follow-up change or rollback.
@@ -123,18 +124,19 @@ post-merge check and address it through a focused follow-up change or rollback.
 Keep automated verification proportional to the boundary being changed:
 
 - Local and pull-request validation should cover deterministic unit checks, static analysis, the
-  production build, and the Pages artifact's base path and required static resources.
-- The Pages deployment workflow should automatically check the deployed HTML and run a lightweight
-  Chromium smoke test for application mount, console/page errors, cross-origin isolation, and the
-  presence of the major workbench UI regions.
+  production build, the Pages artifact's base path and required static resources, and a lightweight
+  Chromium smoke suite served from that built artifact. The suite covers the normal capability loop,
+  the unavailable-runtime editor path, and user-initiated selected-folder diagnostics.
+- The Pages deployment workflow should independently check the deployed HTML and run the same
+  lightweight Chromium smoke suite against the public origin for release verification.
 - Browser smoke tests should confirm that the major modules load and are usable, but need not become
   a complete end-to-end test of every editor interaction or WebContainer command. Keep expensive or
   environment-sensitive flows such as package installation and dev-server startup as focused
   follow-up checks until their test environment is stable.
 
-These deployment checks are evidence for post-merge verification, not automatic approval or merge
-gates. Record their scope and result in the PR or deployment handoff, and add deeper coverage when
-a regression shows that the current boundary is insufficient.
+The artifact-preview suite is a pull-request merge gate; deployed-origin checks are post-merge
+release evidence. Record their scope and result in the PR or deployment handoff, and add deeper
+coverage when a regression shows that the current boundary is insufficient.
 
 ## Dependencies and browser compatibility
 

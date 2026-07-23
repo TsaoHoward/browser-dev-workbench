@@ -211,10 +211,10 @@ not a persistence grant or protection from eviction.
 
 ## Validation and exit conditions
 
-Run focused unit tests and `npm run validate`. Verify the capability loop on the deployed Pages
-origin in the current Chromium target, including a service-worker-controlled reload and a graceful
-unavailable-runtime condition. Archive only after the browser evidence and any deviations are
-recorded.
+Run focused unit tests and `npm run validate`. Before merge, CI must serve the built Pages artifact
+and verify the capability loop in the current Chromium target, including a service-worker-controlled
+reload and a graceful unavailable-runtime condition. After merge, repeat the smoke suite on the
+deployed Pages origin. Archive only after the browser evidence and any deviations are recorded.
 
 ## Implementation progress
 
@@ -231,6 +231,9 @@ recorded.
   maps picker `AbortError`, explicit permission denial, and operational failure without exposing
   raw exceptions. The Pages workflow now includes lightweight unavailable-runtime and
   user-initiated-folder-diagnostic smoke paths; the full runtime flow remains opt-in.
+- 2026-07-23 — Added the same lightweight Chromium smoke suite to pull-request CI, served from the
+  exact built Pages artifact. This is the pre-merge artifact gate; deployed-origin verification
+  remains a post-merge release check.
 
 ### Validation to date
 

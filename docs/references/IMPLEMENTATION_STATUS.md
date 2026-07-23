@@ -28,11 +28,10 @@ workspace. Runtime boot remains intent-triggered, and its boot outcome is cached
 mount, command, and dev-server lifecycle failures.
 
 The repository also provides linting, formatting, Svelte type checking, unit tests, a production
-build, and a GitHub Pages deployment workflow. The local validation suite checks that the production
-artifact uses the Pages base path and contains the COOP/COEP service-worker shim. After deployment,
-the Pages workflow fetches the deployed HTML and verifies that its module, stylesheet, and service
-worker resources are available, then runs a lightweight Chromium smoke test for the mounted app,
-console/page errors, cross-origin isolation, and major workbench UI regions.
+build, and a GitHub Pages deployment workflow. Pull requests serve the production artifact locally
+and run a lightweight Chromium capability smoke suite before merge. After deployment, the Pages
+workflow fetches the deployed HTML and verifies that its module, stylesheet, and service worker
+resources are available, then runs the same smoke suite against the public origin.
 
 ## Not implemented
 
