@@ -71,8 +71,10 @@ concern, not a prerequisite for Workspace Core, Runtime Adapters, or browser-loc
   Each smoke path records redacted, schema-versioned browser acceptance evidence and webpage
   screenshots as a 14-day workflow artifact. The current deployed origin passed all three
   deterministic harness paths in Chromium 149.0.7827.55; native folder selection and dismissal
-  still require human-gated reference evidence. The acceptance harness ignores only the known
-  Pages `favicon.ico` 404 and reports every other failed resource as a redacted, reviewable error.
+  passed their human-gated reference checks at candidate commit `4af1f18`, with no console or page
+  errors. The acceptance harness ignores only the known Pages `favicon.ico` 404 and reports every
+  other failed resource as a redacted, reviewable error. Native post-selection `permission-denied`
+  remains unavailable without retaining a handle, so the injected-boundary test is its evidence.
   The smoke coverage also exercises a deliberately unisolated page, where the runtime action must
   stay unavailable while editing remains usable, and a stubbed selected-folder diagnostic that must
   run only after its button is clicked. A focused Chromium post-merge check also passed the small
@@ -94,7 +96,9 @@ with structured evidence and a headed Playwright path for native selected-folder
 dismissal. MCP is optional agent-assisted diagnostics, not a prerequisite or merge gate. A native
 post-selection permission denial is recorded only when the platform can expose it without retaining
 a handle; otherwise the existing injected-boundary test is evidence and the native limitation is a
-documented deviation. The subsequent sequence remains intentionally capability-first:
+documented deviation. The native reference scenarios and all candidate deployment checks now pass;
+the remaining Slice 07 exit work is the optional MCP-path evaluation and its decision record. The
+subsequent sequence remains intentionally capability-first:
 
 1. [Slice 07 — Semi-automated browser acceptance](../slices/active/07-semi-automated-browser-acceptance.md)
 2. [Slice 03 — Persistent browser workspace](../slices/planned/03-persistent-browser-workspace.md)

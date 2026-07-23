@@ -118,3 +118,9 @@ npm run test:pages:browser:folder:dismissed -- <pages-url> --evidence-dir accept
   but a Pages `favicon.ico` 404 caused a false-negative console-error result. The harness now treats
   only that exact expected 404 as non-fatal and records every other HTTP failure with a redacted URL.
   Repeat both native scenarios before recording the reference evidence.
+- 2026-07-23 — Human-gated reference evidence passed on the deployed candidate at commit
+  `4af1f18` in Chromium 149.0.7827.55. The selected scenario reached `Selected folder: ready`; the
+  dismissed scenario reached `Selected folder: not-completed`. Both reports recorded service-worker
+  control, cross-origin isolation, no console or page errors, and only redacted webpage screenshots.
+  No native post-selection `permission-denied` outcome was available, so the injected-boundary test
+  remains its evidence and this platform limitation is recorded as expected.
