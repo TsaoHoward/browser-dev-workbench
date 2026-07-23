@@ -58,3 +58,7 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Verify deployed Pages browser smoke
         run: npm run test:pages:browser -- "${{ needs.deploy.outputs.page_url }}"
+      - name: Verify unavailable runtime keeps the editor usable
+        run: npm run test:pages:browser:unavailable -- "${{ needs.deploy.outputs.page_url }}"
+      - name: Verify selected-folder diagnostic stays user initiated
+        run: npm run test:pages:browser:folder -- "${{ needs.deploy.outputs.page_url }}"

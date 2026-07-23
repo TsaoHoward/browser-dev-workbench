@@ -189,12 +189,14 @@ not a persistence grant or protection from eviction.
 ### Evidence still required
 
 - Repeat passive and runtime probes on the Slice 02 deployment after service-worker control.
-- Test a capability-unavailable path and a runtime-boot failure without blocking editor use.
+- Verify the deployed unavailable-runtime smoke path keeps the editor usable. Keep runtime boot
+  failure mapping covered by the injected runtime unit tests unless a stable browser-level failure
+  setup is available without a production test backdoor.
 - Establish the initial browser evidence matrix; WebContainer's support guidance continues to make
   Chromium the strongest starting point, while other browser behavior must be measured separately.
-- Verify that a selected-folder probe runs only inside a user-initiated interaction and distinguish
-  API absence, picker `not-completed`, explicit post-selection permission denial, and operational
-  failure.
+- Complete native Chromium selected-folder selection, cancellation, and post-selection
+  permission-denial checks. The deployed smoke test covers only the button-triggered path with an
+  injected picker stub; it does not claim native-picker behavior.
 
 ## Acceptance criteria
 
@@ -229,11 +231,19 @@ recorded.
 - 2026-07-23 — Added structured runtime failures and a cancellable 30-second dev-server startup
   bound. Early process exit, timeout, cancellation, and `server-ready` are unit-tested; the editor
   remains usable when the runtime is unavailable or boot fails.
+- 2026-07-23 — Added a selected-folder diagnostic that discards the handle after probing it and
+  maps picker `AbortError`, explicit permission denial, and operational failure without exposing
+  raw exceptions. The Pages workflow now includes lightweight unavailable-runtime and
+  user-initiated-folder-diagnostic smoke paths; the full runtime flow remains opt-in.
 
 ### Validation to date
 
 - Local Chromium smoke verification passed after the COI service-worker reload. It recorded ready
   Workspace Core, IndexedDB, OPFS (after explicit probe), and Pages isolation shim; selected folder
   remained correctly `user-action-required`, and Worker/WASM remained passive `available` results.
+- A local production-preview Chromium check blocked the COI shim and confirmed the runtime action
+  was unavailable while the editor remained editable. A separate injected-picker check confirmed
+  that folder selection was not called during page load and ran exactly once from the diagnostic
+  button.
 - The deployed-origin verification remains an exit condition and must run only after this branch is
   deployed to Pages.
