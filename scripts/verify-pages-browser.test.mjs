@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import {
   createAcceptanceEvidence,
+  isExpectedResourceFailure,
+  isGenericResourceConsoleError,
   parseBrowserAcceptanceArguments,
   redactError,
   redactUrl,
@@ -64,5 +66,48 @@ describe('browser acceptance evidence', () => {
       'https://example.test/app/',
     );
     expect(redactError('file:///tmp/secret.txt')).not.toContain('/tmp/secret.txt');
+  });
+
+  it('ignores only the expected favicon 404 and retains other resource failures', () => {
+    expect(isExpectedResourceFailure(404, 'https://example.test/app/favicon.ico')).toBe(true);
+    expect(isExpectedResourceFailure(404, 'https://example.test/app/missing-module.js')).toBe(
+      false,
+    );
+    expect(isExpectedResourceFailure(500, 'https://example.test/app/favicon.ico')).toBe(false);
+    expect(
+      isGenericResourceConsoleError(
+        'Failed to load resource: the server responded with a status of 404 ()',
+      ),
+    ).toBe(true);
+    expect(isGenericResourceConsoleError('Uncaught Error: application failed')).toBe(false);
+  });
+
+  it('retains the redacted URL for a non-ignorable resource failure', () => {
+    const evidence = createAcceptanceEvidence({
+      actions: [],
+      artifacts: [],
+      browserVersion: '149.0',
+      capabilities: '',
+      errors: [
+        {
+          source: 'resource',
+          message: 'Resource returned HTTP 404.',
+          url: 'https://example.test/app/missing.js?token=secret',
+        },
+      ],
+      scenario: 'capability-loop',
+      serviceWorkerControlled: true,
+      targetCommit: 'abc123',
+      targetUrl: 'https://example.test/app/',
+      crossOriginIsolated: true,
+    });
+
+    expect(evidence.observations.errors).toEqual([
+      {
+        source: 'resource',
+        message: 'Resource returned HTTP 404.',
+        url: 'https://example.test/app/missing.js',
+      },
+    ]);
   });
 });

@@ -114,3 +114,7 @@ npm run test:pages:browser:folder:dismissed -- <pages-url> --evidence-dir accept
   diagnostic. Each produced a redacted JSON session record and webpage screenshot with no console
   or page errors. Native selected and dismissed runs remain the required human-gated reference
   evidence before this slice can exit.
+- 2026-07-23 — Native selected and dismissed interactions reached their expected observable states,
+  but a Pages `favicon.ico` 404 caused a false-negative console-error result. The harness now treats
+  only that exact expected 404 as non-fatal and records every other HTTP failure with a redacted URL.
+  Repeat both native scenarios before recording the reference evidence.

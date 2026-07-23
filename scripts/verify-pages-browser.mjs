@@ -116,6 +116,18 @@ export function redactError(value) {
     .replaceAll(/[?&](?:token|access_token|authorization|password)=[^\s&]+/gi, '$1=[redacted]');
 }
 
+export function isExpectedResourceFailure(status, url) {
+  try {
+    return status === 404 && new URL(url).pathname.endsWith('/favicon.ico');
+  } catch {
+    return false;
+  }
+}
+
+export function isGenericResourceConsoleError(message) {
+  return message === 'Failed to load resource: the server responded with a status of 404 ()';
+}
+
 export function createAcceptanceEvidence({
   actions,
   artifacts,
@@ -146,7 +158,11 @@ export function createAcceptanceEvidence({
     actions,
     observations: {
       capabilities,
-      errors: errors.map(({ message, source }) => ({ source, message: redactError(message) })),
+      errors: errors.map(({ message, source, url }) => ({
+        source,
+        message: redactError(message),
+        ...(url ? { url: redactUrl(url) } : {}),
+      })),
     },
     artifacts,
   };
@@ -222,9 +238,20 @@ export async function runBrowserAcceptance(options) {
 
     page = await context.newPage();
     page.on('console', (message) => {
-      if (message.type() === 'error') errors.push({ source: 'console', message: message.text() });
+      if (message.type() !== 'error' || isGenericResourceConsoleError(message.text())) return;
+      errors.push({ source: 'console', message: message.text() });
     });
     page.on('pageerror', (error) => errors.push({ source: 'page', message: error.message }));
+    page.on('response', (response) => {
+      if (response.status() < 400 || isExpectedResourceFailure(response.status(), response.url())) {
+        return;
+      }
+      errors.push({
+        source: 'resource',
+        message: `Resource returned HTTP ${response.status()}.`,
+        url: response.url(),
+      });
+    });
 
     recordAction(actions, 'navigate', 'started');
     const response = await page.goto(options.pageUrl, { waitUntil: 'networkidle' });

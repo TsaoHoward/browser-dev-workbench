@@ -71,7 +71,8 @@ concern, not a prerequisite for Workspace Core, Runtime Adapters, or browser-loc
   Each smoke path records redacted, schema-versioned browser acceptance evidence and webpage
   screenshots as a 14-day workflow artifact. The current deployed origin passed all three
   deterministic harness paths in Chromium 149.0.7827.55; native folder selection and dismissal
-  still require human-gated reference evidence.
+  still require human-gated reference evidence. The acceptance harness ignores only the known
+  Pages `favicon.ico` 404 and reports every other failed resource as a redacted, reviewable error.
   The smoke coverage also exercises a deliberately unisolated page, where the runtime action must
   stay unavailable while editing remains usable, and a stubbed selected-folder diagnostic that must
   run only after its button is clicked. A focused Chromium post-merge check also passed the small
