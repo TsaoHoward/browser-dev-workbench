@@ -2,9 +2,10 @@
 
 | Field        | Value                           |
 | ------------ | ------------------------------- |
-| Status       | planned                         |
+| Status       | active                          |
 | Owner        | repository contributors         |
 | Dependencies | Slice 01 completed and ADR-0002 |
+| Activated    | 2026-07-23                      |
 
 ## Goal
 
@@ -26,6 +27,9 @@ steps they enable, and where runtime, storage, version-control, and remote adapt
    - **Reduced:** editor, recoverable storage, browser-local Git and WASM validation when their
      adapters are available, without a complete Node-compatible runtime.
    - **Portable:** editor, import/export, diff, patch, and basic static checks when available.
+     These labels describe actions that delivered adapters have actually enabled; they must not imply
+     that an undispatched adapter exists. Slice 02 delivers no Worker/WASM validation, archive, diff,
+     or patch operation.
 4. Document and introduce focused service contracts for Workspace Core, Runtime Adapters, Storage
    Adapters, Version Control, and Remote Repository Adapters. Keep the present IndexedDB,
    WebContainer, and public GitHub import implementations behind their appropriate boundaries;
@@ -55,6 +59,23 @@ The maintainer approved the following directions on 2026-07-22:
 3. Do not select a Worker-hosted or WASM validation toolchain in Slice 02. Establish only the
    capability and result boundary, then evaluate an actual reduced validation adapter in a later
    slice against a concrete use case.
+4. Treat service-worker control as the GitHub Pages COOP/COEP-shim deployment capability, not as
+   an intrinsic WebContainer boot prerequisite. The WebContainer runtime prerequisite remains a
+   secure, cross-origin-isolated context with `SharedArrayBuffer`; the registry reports the shim
+   independently so a deployment with real response headers is not falsely rejected.
+5. Use a focused `RuntimeOperationError` contract. Runtime boot, mount, command, and dev-server
+   outcomes are separate from browser capability results. Dev-server startup has a 30-second
+   timeout after the process is spawned, accepts an `AbortSignal`, and terminates as `ready`,
+   `server-exited-before-ready`, `server-start-timeout`, or `cancelled`. The UI presents an
+   explicit cancel action while startup is pending.
+6. A selected-folder picker `AbortError` is reported as `not-completed`, not as a definite user
+   cancellation or permission denial: the platform uses that exception for both cancellation and
+   some refusal cases. Report `permission-denied` only after an obtained handle explicitly reports
+   it through the permission API. Slice 02 keeps selected-folder access as a detected/probed
+   adapter boundary and does not retain or write a selected folder.
+7. Represent the five boundaries through focused existing or newly consumed contracts. Do not add
+   a generic provider framework or a no-op Version Control adapter before Slice 04 has a concrete
+   consumer; document Version Control as the reserved browser-local boundary instead.
 
 ### Approved probe policy
 
@@ -104,7 +125,7 @@ is the approved activation contract, not a final type design:
 | Editor / Workspace Core           | `ready` once the application mounts                                                | n/a                                                                           | Editing remains usable whenever the page itself loads.                                                        |
 | Recoverable IndexedDB workspace   | `not-probed` if API presence is unknown; otherwise `available`                     | `ready`, `failed`, or `quota-exceeded` after load/save                        | Keep the in-memory workspace usable; offer actionable recovery or export guidance on failure.                 |
 | OPFS workspace/repository storage | `unavailable` or `available` by API presence                                       | `ready` or `failed` after the storage action                                  | Do not imply persistence merely from API presence.                                                            |
-| Selected local folder             | `unavailable` or `user-action-required`                                            | `ready`, `cancelled`, `permission-denied`, or `failed`                        | Open a picker only from a trusted user action; cancellation is not an error.                                  |
+| Selected local folder             | `unavailable` or `user-action-required`                                            | `ready`, `not-completed`, `permission-denied`, or `failed`                    | Open a picker only from a trusted user action; a picker `AbortError` is not a definite cancellation/denial.   |
 | WebContainer runtime              | `unavailable` if required isolation/SAB prerequisites fail; otherwise `not-probed` | `ready` after boot, or `boot-failed`                                          | Keep editor and portable actions available; give reload/deployment guidance only for the failed prerequisite. |
 | Runtime mount / install           | n/a after runtime is ready                                                         | `mount-failed`, `command-failed`, `cancelled`, or `ready`                     | Report the operation and retain the browser workspace unchanged.                                              |
 | Dev server                        | n/a after runtime is ready                                                         | `ready`, `server-exited-before-ready`, `server-start-timeout`, or `cancelled` | Never leave the UI indefinitely in “starting”; preserve log context without treating it as capability loss.   |
@@ -172,14 +193,15 @@ not a persistence grant or protection from eviction.
 - Establish the initial browser evidence matrix; WebContainer's support guidance continues to make
   Chromium the strongest starting point, while other browser behavior must be measured separately.
 - Verify that a selected-folder probe runs only inside a user-initiated interaction and distinguish
-  API absence, user cancellation, permission denial, and operational failure.
+  API absence, picker `not-completed`, explicit post-selection permission denial, and operational
+  failure.
 
 ## Acceptance criteria
 
 - Capability detection is unit-tested with present, absent, and probe-failure dependencies.
 - Unit tests cover the proposed result matrix, including the distinction between unavailable,
-  not-probed, user cancellation, runtime boot failure, command failure, early dev-server exit, and
-  timeout.
+  not-probed, picker `not-completed`, runtime boot failure, command failure, early dev-server exit,
+  and timeout.
 - The UI or diagnostics makes the effective workflow and unavailable prerequisites understandable
   without presenting separate hard-coded products.
 - Current WebContainer and IndexedDB behavior remains functional on the verified deployment path;
@@ -196,11 +218,22 @@ origin in the current Chromium target, including a service-worker-controlled rel
 unavailable-runtime condition. Archive only after the browser evidence and any deviations are
 recorded.
 
-## Remaining activation work
+## Implementation progress
 
-- Record the exact current Chromium/Playwright version in the activation evidence and repeat the
-  passive and full-runtime probes against the Slice 02 deployment.
-- Specify the concrete runtime result types, early-exit handling, cancellation behavior, and bounded
-  dev-server-start timeout before code changes begin.
-- Prepare an explicit manual selected-folder test that records API absence, cancellation, permission
-  denial, and operational failure without treating cancellation as an error.
+- 2026-07-23 — Activated with the maintainer decisions above. The activation environment uses
+  Playwright 1.61.1 and Chromium 149.0.7827.55. Implement the focused registry and runtime
+  lifecycle contract before repeating the deployed-origin evidence on this slice's deployment.
+- 2026-07-23 — Added the passive capability registry, an explicit storage/OPFS usable probe,
+  capability diagnostics, and deploy-smoke output for the capabilities it actually checks. The
+  Pages service-worker shim is reported separately from WebContainer runtime prerequisites.
+- 2026-07-23 — Added structured runtime failures and a cancellable 30-second dev-server startup
+  bound. Early process exit, timeout, cancellation, and `server-ready` are unit-tested; the editor
+  remains usable when the runtime is unavailable or boot fails.
+
+### Validation to date
+
+- Local Chromium smoke verification passed after the COI service-worker reload. It recorded ready
+  Workspace Core, IndexedDB, OPFS (after explicit probe), and Pages isolation shim; selected folder
+  remained correctly `user-action-required`, and Worker/WASM remained passive `available` results.
+- The deployed-origin verification remains an exit condition and must run only after this branch is
+  deployed to Pages.

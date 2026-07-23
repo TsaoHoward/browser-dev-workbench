@@ -5,17 +5,18 @@ scope, dependencies, acceptance criteria, risks, validation, and exit conditions
 
 ## Current implementation target
 
-No implementation slice is active. Activate the next slice only after its open decisions are agreed.
+[02 — Capability model and runtime boundaries](active/02-capability-model-and-runtime-boundaries.md)
+is active. It establishes the capability registry and focused adapter boundaries before persistent
+workspace or browser-local Git work begins.
 
 ## Approved next slice
 
-| Slice                                                                                                 | Status  | Purpose                                                       |
-| ----------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------- |
-| [02 — Capability model and runtime boundaries](planned/02-capability-model-and-runtime-boundaries.md) | planned | Establish capability-based workflows and adapter boundaries.  |
-| [03 — Persistent browser workspace](planned/03-persistent-browser-workspace.md)                       | planned | Recover files and metadata; separate them from process state. |
-| [04 — Browser-local version control](planned/04-browser-local-version-control.md)                     | planned | Validate disconnected browser-local Git workflows.            |
-| [05 — Portable interchange](planned/05-portable-interchange.md)                                       | planned | Add archives, patches/bundles, and selected-folder handoff.   |
-| [06 — Optional remote synchronization](planned/06-optional-remote-synchronization.md)                 | planned | Add remote import/fetch/push after local Git is proven.       |
+| Slice                                                                                 | Status  | Purpose                                                       |
+| ------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------- |
+| [03 — Persistent browser workspace](planned/03-persistent-browser-workspace.md)       | planned | Recover files and metadata; separate them from process state. |
+| [04 — Browser-local version control](planned/04-browser-local-version-control.md)     | planned | Validate disconnected browser-local Git workflows.            |
+| [05 — Portable interchange](planned/05-portable-interchange.md)                       | planned | Add archives, patches/bundles, and selected-folder handoff.   |
+| [06 — Optional remote synchronization](planned/06-optional-remote-synchronization.md) | planned | Add remote import/fetch/push after local Git is proven.       |
 
 ## Completed slices
 

@@ -20,6 +20,13 @@ recoverable IndexedDB workspace, and a Chromium-focused WebContainer runtime. Th
 import is a read-only remote-adapter proof; it is not the workspace's source of record or a
 prerequisite for editing, runtime use, or future browser-local commits.
 
+Slice 02 is active. The workbench now passively reports browser capability prerequisites and keeps
+the Pages service-worker shim separate from WebContainer's secure-context, cross-origin-isolation,
+and `SharedArrayBuffer` requirements. A user can explicitly probe storage estimation and OPFS
+access; these results are page-session diagnostics, not a durability guarantee or an OPFS-backed
+workspace. Runtime boot remains intent-triggered, and its boot outcome is cached separately from
+mount, command, and dev-server lifecycle failures.
+
 The repository also provides linting, formatting, Svelte type checking, unit tests, a production
 build, and a GitHub Pages deployment workflow. The local validation suite checks that the production
 artifact uses the Pages base path and contains the COOP/COEP service-worker shim. After deployment,
@@ -29,7 +36,7 @@ console/page errors, cross-origin isolation, and major workbench UI regions.
 
 ## Not implemented
 
-- Browser capability registry, OPFS support, selected-folder access, archive interchange, or an
+- OPFS-backed workspace/repository storage, selected-folder access, archive interchange, or an
   explicit reduced/portable runtime fallback.
 - Browser-local Git: repository init, status, diff, staging, local commits, branches, history,
   checkout, patches, or bundles.
@@ -65,17 +72,21 @@ concern, not a prerequisite for Workspace Core, Runtime Adapters, or browser-loc
   remote source of record and does not restore running processes, terminal sessions, or dev servers.
 - `npm install` cost depends on the dependency graph, browser memory, CPU, and network.
 - WebContainer boot is limited to one instance per page. The runtime service reuses it.
+- Dev-server startup reports ready, early exit, cancellation, or a 30-second startup timeout rather
+  than remaining in a perpetual starting state. These outcomes do not mark the browser runtime
+  capability unavailable.
 - The code textarea is deliberately minimal; introducing Monaco should be a separate milestone.
 
-## Approved next work
+## Active and next work
 
-No slice is active. The planned sequence is intentionally capability-first:
+Slice 02 is the active implementation target. Its remaining exit work is deployed-origin browser
+verification of the implemented capability loop and recording any deviations. The subsequent
+sequence remains intentionally capability-first:
 
-1. [Slice 02 — Capability model and runtime boundaries](../slices/planned/02-capability-model-and-runtime-boundaries.md)
-2. [Slice 03 — Persistent browser workspace](../slices/planned/03-persistent-browser-workspace.md)
-3. [Slice 04 — Browser-local version control](../slices/planned/04-browser-local-version-control.md)
-4. [Slice 05 — Portable interchange](../slices/planned/05-portable-interchange.md)
-5. [Slice 06 — Optional remote synchronization](../slices/planned/06-optional-remote-synchronization.md)
+1. [Slice 03 — Persistent browser workspace](../slices/planned/03-persistent-browser-workspace.md)
+2. [Slice 04 — Browser-local version control](../slices/planned/04-browser-local-version-control.md)
+3. [Slice 05 — Portable interchange](../slices/planned/05-portable-interchange.md)
+4. [Slice 06 — Optional remote synchronization](../slices/planned/06-optional-remote-synchronization.md)
 
 The former session-only GitHub publish plan is [superseded historical research](../slices/archive/02-session-only-github-publish.md),
 not approved work. Its remote-authentication conclusions must be revalidated against official

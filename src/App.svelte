@@ -12,8 +12,16 @@
     PublicGitHubImportService,
     type RepositoryTarget,
   } from './services/github/github-service';
+  import {
+    BrowserCapabilityRegistry,
+    capabilityLabel,
+    type CapabilitySnapshot,
+  } from './services/capabilities/capability-registry';
   import { IndexedDbWorkspaceRepository } from './services/persistence/workspace-repository';
-  import { WebContainerRuntime } from './services/runtime/webcontainer-runtime';
+  import {
+    RuntimeOperationError,
+    WebContainerRuntime,
+  } from './services/runtime/webcontainer-runtime';
 
   type RuntimeStatus = 'idle' | 'preparing' | 'installing' | 'starting' | 'running' | 'error';
   let files: WorkspaceFile[] = cloneFiles(starterProject);
@@ -32,13 +40,28 @@
   let importLoading = false;
   let importError = '';
   let ignoredImportPathCount = 0;
+  let storageProbeLoading = false;
+  let startController: AbortController | null = null;
 
+  const capabilityRegistry = new BrowserCapabilityRegistry();
   const runtime = new WebContainerRuntime();
   const github = new PublicGitHubImportService();
+  let capabilities: CapabilitySnapshot = capabilityRegistry.snapshot();
 
   $: selectedFile = files.find((file) => file.path === selectedPath);
   $: busy = ['preparing', 'installing', 'starting'].includes(status);
   $: hasImportConflict = hasSavedSnapshot || dirty;
+  $: runtimeCapability = capabilities['webcontainer-runtime'];
+  $: runtimeActionDisabled = busy || runtimeCapability.state === 'unavailable';
+  $: capabilityEntries = [
+    ['Workspace core', capabilities['workspace-core']],
+    ['IndexedDB', capabilities['indexeddb-workspace']],
+    ['OPFS', capabilities['opfs-storage']],
+    ['Selected folder', capabilities['selected-folder']],
+    ['Pages isolation shim', capabilities['pages-isolation-shim']],
+    ['Worker', capabilities.worker],
+    ['WebAssembly', capabilities.wasm],
+  ] as const;
 
   onMount(async () => {
     repository = new IndexedDbWorkspaceRepository();
@@ -54,8 +77,15 @@
           : (files[0]?.path ?? '');
         persistenceMessage = `Restored ${files.length} files saved ${formatTimestamp(saved.savedAt)}`;
       }
+      capabilityRegistry.record('indexeddb-workspace', { state: 'ready' });
+      refreshCapabilities();
     } catch (error) {
-      appendLog(`Persistence unavailable: ${errorMessage(error)}`);
+      capabilityRegistry.record('indexeddb-workspace', {
+        state: 'failed',
+        reason: persistenceErrorMessage(error),
+      });
+      refreshCapabilities();
+      appendLog(`Persistence unavailable: ${persistenceErrorMessage(error)}`);
     }
   });
 
@@ -80,9 +110,16 @@
       dirty = false;
       hasSavedSnapshot = true;
       persistenceMessage = `Saved ${files.length} files ${formatTimestamp(snapshot.savedAt)}`;
+      capabilityRegistry.record('indexeddb-workspace', { state: 'ready' });
+      refreshCapabilities();
       appendLog('Workspace saved to IndexedDB.');
     } catch (error) {
-      appendLog(`Save failed: ${errorMessage(error)}`);
+      capabilityRegistry.record('indexeddb-workspace', {
+        state: 'failed',
+        reason: persistenceErrorMessage(error),
+      });
+      refreshCapabilities();
+      appendLog(`Save failed: ${persistenceErrorMessage(error)}`);
     }
   }
 
@@ -167,10 +204,13 @@
     previewUrl = '';
     try {
       await runtime.prepare(files, appendLog);
+      capabilityRegistry.record('webcontainer-runtime', { state: 'ready' });
+      refreshCapabilities();
       return true;
     } catch (error) {
       status = 'error';
-      appendLog(`Runtime error: ${errorMessage(error)}`);
+      recordRuntimeFailure(error);
+      appendLog(`Runtime error: ${runtimeErrorMessage(error)}`);
       return false;
     }
   }
@@ -195,10 +235,9 @@
   }
 
   async function startDevServer(): Promise<void> {
-    try {
-      status = 'preparing';
-      await runtime.prepare(files, appendLog);
+    if (!(await prepareWorkspace())) return;
 
+    try {
       if (!runtime.dependenciesReady(files)) {
         status = 'installing';
         await runtime.install(appendLog);
@@ -209,12 +248,56 @@
       }
 
       status = 'starting';
-      previewUrl = await runtime.startDevServer(appendLog);
+      startController = new AbortController();
+      previewUrl = await runtime.startDevServer(appendLog, { signal: startController.signal });
       status = 'running';
       appendLog(`Preview ready at ${previewUrl}`);
     } catch (error) {
       status = 'error';
-      appendLog(`Start failed: ${errorMessage(error)}`);
+      recordRuntimeFailure(error);
+      appendLog(`Start failed: ${runtimeErrorMessage(error)}`);
+    } finally {
+      startController = null;
+    }
+  }
+
+  function cancelDevServerStart(): void {
+    startController?.abort();
+  }
+
+  function refreshCapabilities(): void {
+    capabilities = capabilityRegistry.snapshot();
+  }
+
+  async function probeStorageCapabilities(): Promise<void> {
+    storageProbeLoading = true;
+    try {
+      const [storage, opfs] = await Promise.all([
+        capabilityRegistry.probeStorageEstimate(),
+        capabilityRegistry.probeOpfs(),
+      ]);
+      refreshCapabilities();
+      appendLog(`Storage probe: IndexedDB ${storage.state}; OPFS ${opfs.state}.`);
+    } finally {
+      storageProbeLoading = false;
+    }
+  }
+
+  function recordRuntimeFailure(error: unknown): void {
+    if (!(error instanceof RuntimeOperationError)) return;
+    if (error.code === 'boot-failed') {
+      capabilityRegistry.record('webcontainer-runtime', {
+        state: 'failed',
+        reason: 'The runtime boot probe failed. Retry is available.',
+      });
+      refreshCapabilities();
+    }
+    if (error.code === 'runtime-unavailable') {
+      capabilityRegistry.record('webcontainer-runtime', {
+        state: 'unavailable',
+        reason: 'Runtime prerequisites are unavailable.',
+      });
+      refreshCapabilities();
     }
   }
 
@@ -228,6 +311,19 @@
 
   function errorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
+  }
+
+  function runtimeErrorMessage(error: unknown): string {
+    return error instanceof RuntimeOperationError
+      ? error.message
+      : 'The browser runtime operation failed. Check the runtime log and retry.';
+  }
+
+  function persistenceErrorMessage(error: unknown): string {
+    if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+      return 'Browser storage is full. Keep editing in memory and export or clear space before saving.';
+    }
+    return 'Browser storage is unavailable. Keep editing in memory and retry or use a portable export when available.';
   }
 </script>
 
@@ -244,9 +340,19 @@
     </div>
   </div>
   <div class="header-actions">
-    <span class:ready={globalThis.crossOriginIsolated} class="capability">
+    <span
+      class:ready={runtimeCapability.state === 'ready'}
+      class="capability"
+      title={capabilityLabel(runtimeCapability)}
+    >
       <i></i>
-      {globalThis.crossOriginIsolated ? 'isolated runtime ready' : 'isolation pending'}
+      {runtimeCapability.state === 'ready'
+        ? 'runtime ready'
+        : runtimeCapability.state === 'not-probed'
+          ? 'runtime can start'
+          : runtimeCapability.state === 'failed'
+            ? 'runtime retry available'
+            : 'runtime unavailable'}
     </span>
     <button class="secondary" onclick={openImportDialog} disabled={!repository || busy}
       >Import GitHub</button
@@ -278,6 +384,18 @@
     <div class="storage-note">
       <strong>Browser storage</strong>
       <span>{persistenceMessage}</span>
+    </div>
+    <div class="capability-note" aria-label="Browser capability results">
+      <strong>Capabilities</strong>
+      {#each capabilityEntries as [name, result] (name)}
+        <span title={capabilityLabel(result)}>{name}: {result.state}</span>
+      {/each}
+      <button
+        class="capability-probe"
+        onclick={probeStorageCapabilities}
+        disabled={storageProbeLoading}
+        >{storageProbeLoading ? 'Checking storage…' : 'Check storage'}</button
+      >
     </div>
     {#if importedMetadata}
       <div class="import-note">
@@ -327,7 +445,7 @@
         <div class="preview-glyph">▶</div>
         <strong>Preview is waiting</strong>
         <p>Install the workspace dependencies, then start the Vite development server.</p>
-        <button class="primary large" onclick={startDevServer} disabled={busy}>
+        <button class="primary large" onclick={startDevServer} disabled={runtimeActionDisabled}>
           {busy ? 'Working…' : 'Install & run dev'}
         </button>
       </div>
@@ -339,8 +457,11 @@
       <span>Runtime log</span>
       <div>
         <button onclick={() => (logs = [])}>Clear</button>
-        <button onclick={installDependencies} disabled={busy}>npm install</button>
-        <button onclick={startDevServer} disabled={busy}>npm run dev</button>
+        <button onclick={installDependencies} disabled={runtimeActionDisabled}>npm install</button>
+        <button onclick={startDevServer} disabled={runtimeActionDisabled}>npm run dev</button>
+        {#if status === 'starting'}
+          <button onclick={cancelDevServerStart}>Cancel start</button>
+        {/if}
       </div>
     </div>
     <pre aria-live="polite">{logs.length ? logs.join('\n') : 'No output yet.'}</pre>
