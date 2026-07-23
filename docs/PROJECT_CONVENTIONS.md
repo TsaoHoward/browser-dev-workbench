@@ -135,8 +135,10 @@ Keep automated verification proportional to the boundary being changed:
   follow-up checks until their test environment is stable.
 
 The artifact-preview suite is a pull-request merge gate; deployed-origin checks are post-merge
-release evidence. Record their scope and result in the PR or deployment handoff, and add deeper
-coverage when a regression shows that the current boundary is insufficient.
+release evidence. A successful automated deployment workflow is the canonical record of its own
+scope and result; update the PR or durable slice record only for a failure, deviation, or changed
+verification boundary. Add deeper coverage when a regression shows that the current boundary is
+insufficient.
 
 ## Dependencies and browser compatibility
 

@@ -214,7 +214,8 @@ not a persistence grant or protection from eviction.
 Run focused unit tests and `npm run validate`. Before merge, CI must serve the built Pages artifact
 and verify the capability loop in the current Chromium target, including a service-worker-controlled
 reload and a graceful unavailable-runtime condition. After merge, repeat the smoke suite on the
-deployed Pages origin. Archive only after the browser evidence and any deviations are recorded.
+deployed Pages origin. Archive only after the required browser evidence has a successful workflow
+result or any deviations are recorded.
 
 ## Implementation progress
 
