@@ -1,5 +1,12 @@
 export type CapabilityState =
-  'available' | 'failed' | 'not-probed' | 'ready' | 'unavailable' | 'user-action-required';
+  | 'available'
+  | 'failed'
+  | 'not-completed'
+  | 'not-probed'
+  | 'permission-denied'
+  | 'ready'
+  | 'unavailable'
+  | 'user-action-required';
 
 export type CapabilityId =
   | 'indexeddb-workspace'
@@ -32,8 +39,13 @@ export interface BrowserCapabilityDependencies {
 }
 
 export interface BrowserCapabilityProbes {
+  chooseDirectory?: () => Promise<SelectedFolderHandle>;
   estimateStorage?: () => Promise<StorageEstimate>;
   getOpfsDirectory?: () => Promise<unknown>;
+}
+
+export interface SelectedFolderHandle {
+  queryPermission?: (descriptor?: { mode?: 'read' | 'readwrite' }) => Promise<PermissionState>;
 }
 
 export function readBrowserCapabilityDependencies(): BrowserCapabilityDependencies {
@@ -57,11 +69,15 @@ export function readBrowserCapabilityDependencies(): BrowserCapabilityDependenci
 }
 
 export function readBrowserCapabilityProbes(): BrowserCapabilityProbes {
+  const browser = globalThis as typeof globalThis & {
+    showDirectoryPicker?: () => Promise<SelectedFolderHandle>;
+  };
   const storage = navigator.storage as StorageManager & {
     estimate?: () => Promise<StorageEstimate>;
     getDirectory?: () => Promise<unknown>;
   };
   return {
+    chooseDirectory: browser.showDirectoryPicker?.bind(browser),
     estimateStorage: storage?.estimate?.bind(storage),
     getOpfsDirectory: storage?.getDirectory?.bind(storage),
   };
@@ -168,6 +184,40 @@ export class BrowserCapabilityRegistry {
     } catch {
       const result = { state: 'failed', reason: 'OPFS access failed.' } as const;
       this.record('opfs-storage', result);
+      return result;
+    }
+  }
+
+  async probeSelectedFolder(): Promise<CapabilityResult> {
+    if (this.get('selected-folder').state === 'unavailable') {
+      return this.get('selected-folder');
+    }
+    if (!this.#probes.chooseDirectory) {
+      const result = { state: 'failed', reason: 'Directory access could not be started.' } as const;
+      this.record('selected-folder', result);
+      return result;
+    }
+    try {
+      const handle = await this.#probes.chooseDirectory();
+      const permission = await handle.queryPermission?.({ mode: 'read' });
+      const result =
+        permission === 'denied'
+          ? ({
+              state: 'permission-denied',
+              reason: 'The selected folder denied read permission.',
+            } as const)
+          : ({ state: 'ready' } as const);
+      this.record('selected-folder', result);
+      return result;
+    } catch (error) {
+      const result =
+        error instanceof DOMException && error.name === 'AbortError'
+          ? ({
+              state: 'not-completed',
+              reason: 'Folder selection was not completed.',
+            } as const)
+          : ({ state: 'failed', reason: 'Folder access failed.' } as const);
+      this.record('selected-folder', result);
       return result;
     }
   }

@@ -40,6 +40,7 @@
   let importLoading = false;
   let importError = '';
   let ignoredImportPathCount = 0;
+  let folderProbeLoading = false;
   let storageProbeLoading = false;
   let startController: AbortController | null = null;
 
@@ -283,6 +284,17 @@
     }
   }
 
+  async function probeSelectedFolder(): Promise<void> {
+    folderProbeLoading = true;
+    try {
+      const folder = await capabilityRegistry.probeSelectedFolder();
+      refreshCapabilities();
+      appendLog(`Selected-folder probe: ${folder.state}.`);
+    } finally {
+      folderProbeLoading = false;
+    }
+  }
+
   function recordRuntimeFailure(error: unknown): void {
     if (!(error instanceof RuntimeOperationError)) return;
     if (error.code === 'boot-failed') {
@@ -395,6 +407,12 @@
         onclick={probeStorageCapabilities}
         disabled={storageProbeLoading}
         >{storageProbeLoading ? 'Checking storage…' : 'Check storage'}</button
+      >
+      <button
+        class="capability-probe"
+        onclick={probeSelectedFolder}
+        disabled={folderProbeLoading || capabilities['selected-folder'].state === 'unavailable'}
+        >{folderProbeLoading ? 'Checking folder…' : 'Check folder access'}</button
       >
     </div>
     {#if importedMetadata}

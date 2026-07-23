@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   BrowserCapabilityRegistry,
   detectPassiveCapabilities,
@@ -46,7 +46,7 @@ describe('detectPassiveCapabilities', () => {
     });
   });
 
-  it('reports unavailable APIs and keeps a copied session snapshot', () => {
+  it('reports unavailable APIs and keeps a copied session snapshot', async () => {
     const registry = new BrowserCapabilityRegistry({
       ...supportedBrowser,
       directoryPicker: false,
@@ -73,6 +73,10 @@ describe('detectPassiveCapabilities', () => {
       worker: { state: 'unavailable' },
       'webcontainer-runtime': { state: 'failed' },
     });
+    await expect(registry.probeSelectedFolder()).resolves.toEqual({
+      state: 'unavailable',
+      reason: 'Directory access is unavailable.',
+    });
   });
 
   it('records successful and failed intent-triggered storage probes without exposing exceptions', async () => {
@@ -96,6 +100,41 @@ describe('detectPassiveCapabilities', () => {
     await expect(failedRegistry.probeOpfs()).resolves.toEqual({
       state: 'failed',
       reason: 'OPFS access failed.',
+    });
+  });
+
+  it('does not select a folder until its explicit probe runs', async () => {
+    const chooseDirectory = vi.fn().mockResolvedValue({});
+    const registry = new BrowserCapabilityRegistry(supportedBrowser, { chooseDirectory });
+
+    expect(chooseDirectory).not.toHaveBeenCalled();
+    await expect(registry.probeSelectedFolder()).resolves.toEqual({ state: 'ready' });
+    expect(chooseDirectory).toHaveBeenCalledOnce();
+  });
+
+  it('maps incomplete folder selection, post-selection permission denial, and failures', async () => {
+    const notCompleted = new DOMException('picker closed', 'AbortError');
+    const incompleteRegistry = new BrowserCapabilityRegistry(supportedBrowser, {
+      chooseDirectory: async () => Promise.reject(notCompleted),
+    });
+    const deniedRegistry = new BrowserCapabilityRegistry(supportedBrowser, {
+      chooseDirectory: async () => ({ queryPermission: async () => 'denied' }),
+    });
+    const failedRegistry = new BrowserCapabilityRegistry(supportedBrowser, {
+      chooseDirectory: async () => Promise.reject(new Error('private data')),
+    });
+
+    await expect(incompleteRegistry.probeSelectedFolder()).resolves.toEqual({
+      state: 'not-completed',
+      reason: 'Folder selection was not completed.',
+    });
+    await expect(deniedRegistry.probeSelectedFolder()).resolves.toEqual({
+      state: 'permission-denied',
+      reason: 'The selected folder denied read permission.',
+    });
+    await expect(failedRegistry.probeSelectedFolder()).resolves.toEqual({
+      state: 'failed',
+      reason: 'Folder access failed.',
     });
   });
 });
