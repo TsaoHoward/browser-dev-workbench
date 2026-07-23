@@ -33,6 +33,8 @@ result to the public Pages origin and run a lightweight Chromium capability smok
 merge; validation, deployment, or smoke failure restores the current `main` artifact. After merge,
 the Pages workflow fetches the deployed HTML and verifies that its module, stylesheet, and service
 worker resources are available, then runs the same smoke suite against the public origin.
+The candidate rollback path has been exercised with an intentional post-deployment smoke failure:
+it restored `main` and passed the same deployed-origin checks.
 
 ## Not implemented
 

@@ -236,6 +236,10 @@ result or any deviations are recorded.
 - 2026-07-23 — Changed pull-request validation to deploy same-repository merge results to the public
   Pages origin before merge, then run the lightweight Chromium smoke suite. Failed validation or an
   unmerged PR close restores and verifies the current `main` artifact; fork PRs cannot deploy.
+- 2026-07-23 — A controlled post-deployment smoke failure confirmed the candidate rollback path:
+  the workflow rebuilt, redeployed, and verified `main`. Candidate, rollback, and close-restoration
+  artifacts now use distinct names, because a first drill exposed the deployment action's ambiguity
+  when two artifacts in one run used the default name.
 
 ### Validation to date
 
@@ -256,3 +260,8 @@ result or any deviations are recorded.
   including deployed resource verification plus all three lightweight Chromium smoke paths: the
   normal capability loop, the deliberately unisolated editor path, and the injected selected-folder
   diagnostic. The latter confirms user initiation only; it does not replace native-picker coverage.
+- 2026-07-23 — PR #7 controlled rollback drill run
+  [29996368165](https://github.com/TsaoHoward/browser-dev-workbench/actions/runs/29996368165)
+  passed its deterministic validation, candidate deployment, and all three candidate smoke paths
+  before the intentional terminal failure. Its rollback job rebuilt and redeployed `main`, then
+  passed deployed-resource, normal, unavailable-runtime, and selected-folder smoke verification.
