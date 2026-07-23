@@ -5,24 +5,31 @@ scope, dependencies, acceptance criteria, risks, validation, and exit conditions
 
 ## Current implementation target
 
-No implementation slice is active. Activate the next slice only after its open decisions are agreed.
+[02 — Capability model and runtime boundaries](active/02-capability-model-and-runtime-boundaries.md)
+is active. It establishes the capability registry and focused adapter boundaries before persistent
+workspace or browser-local Git work begins.
 
 ## Approved next slice
 
-| Slice                                                                         | Status  | Purpose                                              |
-| ----------------------------------------------------------------------------- | ------- | ---------------------------------------------------- |
-| [02 — Session-only GitHub publish](planned/02-session-only-github-publish.md) | planned | Publish reviewed changes through GitHub device flow. |
+| Slice                                                                                 | Status  | Purpose                                                       |
+| ------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------- |
+| [03 — Persistent browser workspace](planned/03-persistent-browser-workspace.md)       | planned | Recover files and metadata; separate them from process state. |
+| [04 — Browser-local version control](planned/04-browser-local-version-control.md)     | planned | Validate disconnected browser-local Git workflows.            |
+| [05 — Portable interchange](planned/05-portable-interchange.md)                       | planned | Add archives, patches/bundles, and selected-folder handoff.   |
+| [06 — Optional remote synchronization](planned/06-optional-remote-synchronization.md) | planned | Add remote import/fetch/push after local Git is proven.       |
 
 ## Completed slices
 
-| Slice                                                                   | Status    | Purpose                                                        |
-| ----------------------------------------------------------------------- | --------- | -------------------------------------------------------------- |
-| [01 — Read-only GitHub import](archive/01-readonly-github-import.md)    | completed | Imported supported public repository files read-only.          |
-| [00 — AI repository foundation](archive/00-ai-repository-foundation.md) | completed | Established contributor guidance and durable planning records. |
+| Slice                                                                         | Status     | Purpose                                                        |
+| ----------------------------------------------------------------------------- | ---------- | -------------------------------------------------------------- |
+| [01 — Read-only GitHub import](archive/01-readonly-github-import.md)          | completed  | Imported supported public repository files read-only.          |
+| [02 — Session-only GitHub publish](archive/02-session-only-github-publish.md) | superseded | Preserved remote-authentication research; never implemented.   |
+| [00 — AI repository foundation](archive/00-ai-repository-foundation.md)       | completed  | Established contributor guidance and durable planning records. |
 
 ## Decision records
 
 - [ADR-0001 — Browser-local runtime and GitHub boundary](decisions/ADR-0001-browser-local-runtime-and-github-boundary.md)
+- [ADR-0002 — Capability-oriented browser workbench boundary](decisions/ADR-0002-capability-oriented-browser-workbench-boundary.md)
 
 ## Lifecycle
 

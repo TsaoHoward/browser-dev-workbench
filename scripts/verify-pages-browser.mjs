@@ -28,8 +28,20 @@ try {
   });
   await page.getByText('Browser Dev Workbench', { exact: true }).waitFor();
   await page.locator('textarea[aria-label="Editing src/App.svelte"]').waitFor();
-  await page.getByText('isolated runtime ready', { exact: true }).waitFor();
+  await page.getByText('runtime can start', { exact: true }).waitFor();
   await page.getByText('Preview is waiting', { exact: true }).waitFor();
+
+  const capabilityResults = await page
+    .locator('[aria-label="Browser capability results"]')
+    .innerText();
+  for (const expected of ['Workspace core: ready', 'IndexedDB: ready', 'OPFS: available']) {
+    if (!capabilityResults.includes(expected)) {
+      throw new Error(`missing expected capability result: ${expected}`);
+    }
+  }
+  await page.getByRole('button', { name: 'Check storage' }).click();
+  await page.getByText('OPFS: ready', { exact: true }).waitFor();
+  await page.getByText('IndexedDB: ready', { exact: true }).waitFor();
 
   if (consoleErrors.length || pageErrors.length) {
     throw new Error(
@@ -40,7 +52,11 @@ try {
     );
   }
 
-  console.log(`Pages browser smoke verification passed: ${pageUrl}`);
+  console.log(
+    `Pages browser smoke verification passed: ${pageUrl}\n${await page
+      .locator('[aria-label="Browser capability results"]')
+      .innerText()}`,
+  );
 } finally {
   await browser.close();
 }

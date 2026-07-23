@@ -221,7 +221,8 @@ button:disabled {
   background: #111721;
 }
 
-.import-note {
+.import-note,
+.capability-note {
   display: grid;
   gap: 5px;
   margin: 0 10px 10px;
@@ -233,19 +234,23 @@ button:disabled {
 
 .import-note strong,
 .import-note span,
-.import-note code {
+.import-note code,
+.capability-note strong,
+.capability-note span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.import-note strong {
+.import-note strong,
+.capability-note strong {
   color: #aab5c5;
   font-size: 0.7rem;
 }
 
 .import-note span,
-.import-note code {
+.import-note code,
+.capability-note span {
   color: #8092a9;
   font-size: 0.66rem;
 }
@@ -253,6 +258,23 @@ button:disabled {
 .import-note code {
   color: #3be0c5;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.capability-note {
+  border-color: #2c3a49;
+  background: #0e151e;
+}
+
+.capability-probe {
+  min-height: 25px;
+  margin-top: 3px;
+  padding: 0 7px;
+  border: 1px solid #344156;
+  border-radius: 5px;
+  color: #aeb8c8;
+  background: #151d28;
+  font-size: 0.64rem;
+  cursor: pointer;
 }
 
 .storage-note strong {

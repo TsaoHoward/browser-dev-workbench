@@ -1,8 +1,14 @@
 # Browser Dev Workbench
 
-A browser-hosted Svelte development workbench deployed as a static GitHub Pages application.
-The shell is static; project installation, Node.js commands, and the Vite development server run
-inside the user's browser through WebContainers.
+A browser-hosted Svelte development workbench deployed as a static GitHub Pages application. It
+explores the practical limit of a zero-install front-end workflow: the static page bootstraps a UI
+and selects browser-native capabilities such as WebContainer, WASM tools, storage, local Git, and
+optional repository adapters on demand.
+
+It does not require host Git, Node.js, Docker, an IDE, a companion service, or GitHub
+authentication for core editing, execution, or browser-local commits. Remote repositories are
+optional synchronization and collaboration boundaries, never the workspace's immediate persistence
+layer.
 
 For the current implementation status, known constraints, and planned work, see the
 [implementation status reference](docs/references/IMPLEMENTATION_STATUS.md).
@@ -22,21 +28,21 @@ Svelte workbench UI
   ├─ runtime controls + log
   └─ iframe preview
           │
-Application boundary
-  ├─ IndexedDbWorkspaceRepository
-  ├─ WebContainerRuntime
-  └─ PublicGitHubImportService (read-only)
+Workspace Core
+  ├─ files, editor state, workspace metadata
+  └─ provider- and runtime-independent domain transformations
           │
-Browser infrastructure
-  ├─ IndexedDB
-  ├─ WebContainer filesystem/processes
-  └─ COOP/COEP service-worker shim
+Adapter boundary
+  ├─ runtime: WebContainer, workers, WASM, fallback tools
+  ├─ storage: IndexedDB, OPFS, selected folders, archives
+  ├─ version control: browser-local Git and patch/bundle interchange
+  └─ remote repositories: public import and optional authenticated sync
 ```
 
-`src/fixtures` owns the example project. `src/services` contains browser and external runtime
-adapters so that IndexedDB and WebContainer calls do not spread through Svelte components.
-Browser storage is explicitly a temporary working layer; a GitHub repository is intended to be
-the future versioned persistence layer.
+`src/fixtures` owns the example project. `src/services` contains browser and external adapters so
+that browser APIs, runtimes, local Git, and remote providers do not spread through Svelte
+components. Browser storage may be recoverable but is evictable; processes and dev servers do not
+survive reload. A remote repository records only explicitly synchronized, committed state.
 
 ## Run locally
 

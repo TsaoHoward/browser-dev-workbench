@@ -2,7 +2,7 @@
 
 | Field  | Value      |
 | ------ | ---------- |
-| Status | accepted   |
+| Status | superseded |
 | Date   | 2026-07-21 |
 
 ## Context
@@ -29,3 +29,9 @@ not provide custom response headers. Actual deployed-origin behavior remains a v
 - The implementation avoids OAuth, commits, pull requests, and Actions dispatch in the current
   milestone.
 - Future capability expansion must preserve service boundaries and cannot embed credentials.
+
+## Superseded by
+
+[ADR-0002 — Capability-oriented browser workbench boundary](ADR-0002-capability-oriented-browser-workbench-boundary.md)
+supersedes this decision's WebContainer- and GitHub-centered framing. The one-WebContainer safety
+constraint and no-credential rule remain in force.

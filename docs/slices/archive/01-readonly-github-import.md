@@ -50,5 +50,7 @@ authenticated capability, including the planned device-flow publish session, rem
 
 ## Handoff
 
-The next exact action is to agree the authorization, permission, device-flow, branch, diff, and
-browser-threat-model decisions in planned Slice 02 before activating it.
+The originally planned GitHub-publish follow-up was superseded on 2026-07-22. The next planned
+capability is [Slice 02 — Capability model and runtime boundaries](../planned/02-capability-model-and-runtime-boundaries.md).
+This completed slice remains a read-only Remote Repository Adapter result; it is not a prerequisite
+for browser-local version control or remote authentication.
