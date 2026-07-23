@@ -57,8 +57,25 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Verify deployed Pages browser smoke
-        run: npm run test:pages:browser -- "${{ needs.deploy.outputs.page_url }}"
+        run: >-
+          npm run test:pages:browser -- "${{ needs.deploy.outputs.page_url }}"
+          --evidence-dir acceptance-evidence/capability-loop
+          --target-commit "${{ github.sha }}"
       - name: Verify unavailable runtime keeps the editor usable
-        run: npm run test:pages:browser:unavailable -- "${{ needs.deploy.outputs.page_url }}"
+        run: >-
+          npm run test:pages:browser:unavailable -- "${{ needs.deploy.outputs.page_url }}"
+          --evidence-dir acceptance-evidence/unavailable-runtime
+          --target-commit "${{ github.sha }}"
       - name: Verify selected-folder diagnostic stays user initiated
-        run: npm run test:pages:browser:folder -- "${{ needs.deploy.outputs.page_url }}"
+        run: >-
+          npm run test:pages:browser:folder -- "${{ needs.deploy.outputs.page_url }}"
+          --evidence-dir acceptance-evidence/folder-diagnostic-stub
+          --target-commit "${{ github.sha }}"
+      - name: Upload browser acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-acceptance-${{ github.run_id }}-${{ github.job }}
+          path: acceptance-evidence
+          if-no-files-found: warn
+          retention-days: 14

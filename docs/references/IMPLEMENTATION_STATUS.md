@@ -20,7 +20,7 @@ recoverable IndexedDB workspace, and a Chromium-focused WebContainer runtime. Th
 import is a read-only remote-adapter proof; it is not the workspace's source of record or a
 prerequisite for editing, runtime use, or future browser-local commits.
 
-Slice 02 is active. The workbench now passively reports browser capability prerequisites and keeps
+Slice 02 is complete. The workbench now passively reports browser capability prerequisites and keeps
 the Pages service-worker shim separate from WebContainer's secure-context, cross-origin-isolation,
 and `SharedArrayBuffer` requirements. A user can explicitly probe storage estimation and OPFS
 access; these results are page-session diagnostics, not a durability guarantee or an OPFS-backed
@@ -68,6 +68,10 @@ concern, not a prerequisite for Workspace Core, Runtime Adapters, or browser-loc
   workflows are planned but not yet delivered; other-browser behavior remains unverified.
 - GitHub Pages deployment needs the COOP/COEP service-worker shim. Deployed HTML and static resource
   availability plus a lightweight browser smoke test are checked automatically after deployment.
+  Each smoke path records redacted, schema-versioned browser acceptance evidence and webpage
+  screenshots as a 14-day workflow artifact. The current deployed origin passed all three
+  deterministic harness paths in Chromium 149.0.7827.55; native folder selection and dismissal
+  still require human-gated reference evidence.
   The smoke coverage also exercises a deliberately unisolated page, where the runtime action must
   stay unavailable while editing remains usable, and a stubbed selected-folder diagnostic that must
   run only after its button is clicked. A focused Chromium post-merge check also passed the small
@@ -84,14 +88,14 @@ concern, not a prerequisite for Workspace Core, Runtime Adapters, or browser-loc
 
 ## Active and next work
 
-Slice 02 is the active implementation target. Its deployed capability, full-runtime, and automated
-unavailable-runtime/selected-folder checks have passed. Remaining exit work is native
-selected-folder picker coverage, expanded browser evidence, and recording any deviations. The
-next approved item is Slice 07, which will define a repeatable MCP-assisted and human-gated browser
-acceptance mechanism before persistent-workspace work begins. The subsequent sequence remains
-intentionally capability-first:
+Slice 07 is the active implementation target. It extends the delivered deterministic browser smoke
+with structured evidence and a headed Playwright path for native selected-folder selection and
+dismissal. MCP is optional agent-assisted diagnostics, not a prerequisite or merge gate. A native
+post-selection permission denial is recorded only when the platform can expose it without retaining
+a handle; otherwise the existing injected-boundary test is evidence and the native limitation is a
+documented deviation. The subsequent sequence remains intentionally capability-first:
 
-1. [Slice 07 — Semi-automated browser acceptance](../slices/planned/07-semi-automated-browser-acceptance.md)
+1. [Slice 07 — Semi-automated browser acceptance](../slices/active/07-semi-automated-browser-acceptance.md)
 2. [Slice 03 — Persistent browser workspace](../slices/planned/03-persistent-browser-workspace.md)
 3. [Slice 04 — Browser-local version control](../slices/planned/04-browser-local-version-control.md)
 4. [Slice 05 — Portable interchange](../slices/planned/05-portable-interchange.md)

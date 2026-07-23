@@ -2,7 +2,7 @@
 
 | Field        | Value                           |
 | ------------ | ------------------------------- |
-| Status       | active                          |
+| Status       | completed                       |
 | Owner        | repository contributors         |
 | Dependencies | Slice 01 completed and ADR-0002 |
 | Activated    | 2026-07-23                      |
@@ -265,3 +265,9 @@ result or any deviations are recorded.
   passed its deterministic validation, candidate deployment, and all three candidate smoke paths
   before the intentional terminal failure. Its rollback job rebuilt and redeployed `main`, then
   passed deployed-resource, normal, unavailable-runtime, and selected-folder smoke verification.
+- 2026-07-23 — Completed. The deterministic capability, unavailable-runtime, and injected-folder
+  paths are delivered and archived with this slice. Native picker acceptance is intentionally
+  transferred to Slice 07: it needs a reusable evidence harness rather than an ad hoc manual
+  check. A post-selection `permission-denied` result is not a mandatory native scenario because
+  this slice queries permission immediately and discards the returned handle; if a platform cannot
+  produce it at that point, it must be recorded as a Slice 07 deviation rather than fabricated.

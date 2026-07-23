@@ -16,6 +16,8 @@
     "test:pages": "node scripts/verify-pages.mjs --build",
     "test:pages:browser": "node scripts/verify-pages-browser.mjs",
     "test:pages:browser:folder": "node scripts/verify-pages-browser.mjs --folder-diagnostic",
+    "test:pages:browser:folder:dismissed": "node scripts/verify-pages-browser.mjs --native-folder dismissed --headed",
+    "test:pages:browser:folder:selected": "node scripts/verify-pages-browser.mjs --native-folder selected --headed",
     "test:pages:browser:unavailable": "node scripts/verify-pages-browser.mjs --unavailable-runtime",
     "validate": "npm run lint && npm run format:check && npm run check && npm run test:run && npm run build && npm run test:pages"
   },

@@ -5,6 +5,6 @@ export default defineConfig({
   base: '/browser-dev-workbench/',
   plugins: [svelte()],
   test: {
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'scripts/**/*.test.mjs'],
   },
 });
