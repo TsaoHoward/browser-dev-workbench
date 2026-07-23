@@ -124,3 +124,13 @@ npm run test:pages:browser:folder:dismissed -- <pages-url> --evidence-dir accept
   control, cross-origin isolation, no console or page errors, and only redacted webpage screenshots.
   No native post-selection `permission-denied` outcome was available, so the injected-boundary test
   remains its evidence and this platform limitation is recorded as expected.
+- 2026-07-23 — PR #8 candidate workflow run
+  [30014970968](https://github.com/TsaoHoward/browser-dev-workbench/actions/runs/30014970968)
+  failed before candidate browser smoke: `actions/deploy-pages@v4` received a 403 while listing the
+  uploaded candidate artifact metadata. This is an external Pages/Actions API failure, not a
+  workbench test failure. Its rollback job reached main-artifact deployment but could not complete
+  restored-origin verification: the PR workflow passes the new browser-runner flags while the job
+  has checked out `main`, whose older runner rejects those flags. Do not claim that this rollback was
+  verified. Next investigation: make rollback and close-restoration use the PR harness after
+  deploying the `main` artifact, then re-run the failed workflow jobs once. If the deployment 403
+  repeats, investigate Pages/Actions service state and deployment permissions before adding retries.

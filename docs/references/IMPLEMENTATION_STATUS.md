@@ -96,9 +96,15 @@ with structured evidence and a headed Playwright path for native selected-folder
 dismissal. MCP is optional agent-assisted diagnostics, not a prerequisite or merge gate. A native
 post-selection permission denial is recorded only when the platform can expose it without retaining
 a handle; otherwise the existing injected-boundary test is evidence and the native limitation is a
-documented deviation. The native reference scenarios and all candidate deployment checks now pass;
-the remaining Slice 07 exit work is the optional MCP-path evaluation and its decision record. The
-subsequent sequence remains intentionally capability-first:
+documented deviation. The native reference scenarios and the candidate deployment checks for commit
+`4af1f18` passed; the remaining Slice 07 exit work is the optional MCP-path evaluation and its
+decision record. However, a later PR #8 candidate run failed at `actions/deploy-pages@v4` while
+GitHub Pages listed candidate artifact metadata (403); that is external to the workbench. Its
+rollback verification also exposed a workflow compatibility defect: the PR workflow passes new runner flags after
+checking out old `main`, whose runner rejects them. Treat the prior candidate checks as successful
+evidence for commit `4af1f18`, but do not treat the later rollback as verified until its harness
+checkout ordering is corrected and the run is retried. The subsequent sequence remains intentionally
+capability-first:
 
 1. [Slice 07 — Semi-automated browser acceptance](../slices/active/07-semi-automated-browser-acceptance.md)
 2. [Slice 03 — Persistent browser workspace](../slices/planned/03-persistent-browser-workspace.md)
