@@ -188,10 +188,6 @@ not a persistence grant or protection from eviction.
 
 ### Evidence still required
 
-- Repeat passive and runtime probes on the Slice 02 deployment after service-worker control.
-- Verify the deployed unavailable-runtime smoke path keeps the editor usable. Keep runtime boot
-  failure mapping covered by the injected runtime unit tests unless a stable browser-level failure
-  setup is available without a production test backdoor.
 - Establish the initial browser evidence matrix; WebContainer's support guidance continues to make
   Chromium the strongest starting point, while other browser behavior must be measured separately.
 - Complete native Chromium selected-folder selection, cancellation, and post-selection
@@ -245,5 +241,13 @@ recorded.
   was unavailable while the editor remained editable. A separate injected-picker check confirmed
   that folder selection was not called during page load and ran exactly once from the diagnostic
   button.
-- The deployed-origin verification remains an exit condition and must run only after this branch is
-  deployed to Pages.
+- 2026-07-23 — PR #5 merged as `2d70fba`. Its Pages deployment completed successfully, including
+  deployed resource verification and the lightweight Chromium smoke for application mount,
+  console/page errors, cross-origin isolation, capability results, and the explicit OPFS probe.
+  A focused post-merge Chromium run on the Pages origin then completed WebContainer boot,
+  dependency installation, dev-server readiness, and preview iframe verification for the small
+  fixture without console or page errors.
+- 2026-07-23 — PR #6 merged as `126b142`. Its Pages deployment run completed successfully,
+  including deployed resource verification plus all three lightweight Chromium smoke paths: the
+  normal capability loop, the deliberately unisolated editor path, and the injected selected-folder
+  diagnostic. The latter confirms user initiation only; it does not replace native-picker coverage.

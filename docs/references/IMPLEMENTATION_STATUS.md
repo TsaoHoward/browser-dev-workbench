@@ -68,9 +68,9 @@ concern, not a prerequisite for Workspace Core, Runtime Adapters, or browser-loc
   availability plus a lightweight browser smoke test are checked automatically after deployment.
   The smoke coverage also exercises a deliberately unisolated page, where the runtime action must
   stay unavailable while editing remains usable, and a stubbed selected-folder diagnostic that must
-  run only after its button is clicked. WebContainer boot, package installation, dev-server
-  readiness, and iframe preview still require focused browser verification on the deployed Pages
-  origin.
+  run only after its button is clicked. A focused Chromium post-merge check also passed the small
+  fixture's WebContainer boot, package installation, dev-server readiness, and iframe preview;
+  treat this as evidence rather than a timing guarantee or cross-browser claim.
 - Browser storage can be evicted. It may restore files and metadata when available, but it is not a
   remote source of record and does not restore running processes, terminal sessions, or dev servers.
 - `npm install` cost depends on the dependency graph, browser memory, CPU, and network.
@@ -82,9 +82,10 @@ concern, not a prerequisite for Workspace Core, Runtime Adapters, or browser-loc
 
 ## Active and next work
 
-Slice 02 is the active implementation target. Its remaining exit work is deployed-origin browser
-verification of the implemented capability loop, native selected-folder picker coverage, and
-recording any deviations. The subsequent sequence remains intentionally capability-first:
+Slice 02 is the active implementation target. Its deployed capability, full-runtime, and automated
+unavailable-runtime/selected-folder checks have passed. Remaining exit work is native
+selected-folder picker coverage, expanded browser evidence, and recording any deviations. The
+subsequent sequence remains intentionally capability-first:
 
 1. [Slice 03 — Persistent browser workspace](../slices/planned/03-persistent-browser-workspace.md)
 2. [Slice 04 — Browser-local version control](../slices/planned/04-browser-local-version-control.md)
