@@ -87,12 +87,15 @@ concern, not a prerequisite for Workspace Core, Runtime Adapters, or browser-loc
 Slice 02 is the active implementation target. Its deployed capability, full-runtime, and automated
 unavailable-runtime/selected-folder checks have passed. Remaining exit work is native
 selected-folder picker coverage, expanded browser evidence, and recording any deviations. The
-subsequent sequence remains intentionally capability-first:
+next approved item is Slice 07, which will define a repeatable MCP-assisted and human-gated browser
+acceptance mechanism before persistent-workspace work begins. The subsequent sequence remains
+intentionally capability-first:
 
-1. [Slice 03 — Persistent browser workspace](../slices/planned/03-persistent-browser-workspace.md)
-2. [Slice 04 — Browser-local version control](../slices/planned/04-browser-local-version-control.md)
-3. [Slice 05 — Portable interchange](../slices/planned/05-portable-interchange.md)
-4. [Slice 06 — Optional remote synchronization](../slices/planned/06-optional-remote-synchronization.md)
+1. [Slice 07 — Semi-automated browser acceptance](../slices/planned/07-semi-automated-browser-acceptance.md)
+2. [Slice 03 — Persistent browser workspace](../slices/planned/03-persistent-browser-workspace.md)
+3. [Slice 04 — Browser-local version control](../slices/planned/04-browser-local-version-control.md)
+4. [Slice 05 — Portable interchange](../slices/planned/05-portable-interchange.md)
+5. [Slice 06 — Optional remote synchronization](../slices/planned/06-optional-remote-synchronization.md)
 
 The former session-only GitHub publish plan is [superseded historical research](../slices/archive/02-session-only-github-publish.md),
 not approved work. Its remote-authentication conclusions must be revalidated against official

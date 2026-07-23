@@ -9,14 +9,15 @@ scope, dependencies, acceptance criteria, risks, validation, and exit conditions
 is active. It establishes the capability registry and focused adapter boundaries before persistent
 workspace or browser-local Git work begins.
 
-## Approved next slice
+## Approved sequence
 
-| Slice                                                                                 | Status  | Purpose                                                       |
-| ------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------- |
-| [03 — Persistent browser workspace](planned/03-persistent-browser-workspace.md)       | planned | Recover files and metadata; separate them from process state. |
-| [04 — Browser-local version control](planned/04-browser-local-version-control.md)     | planned | Validate disconnected browser-local Git workflows.            |
-| [05 — Portable interchange](planned/05-portable-interchange.md)                       | planned | Add archives, patches/bundles, and selected-folder handoff.   |
-| [06 — Optional remote synchronization](planned/06-optional-remote-synchronization.md) | planned | Add remote import/fetch/push after local Git is proven.       |
+| Slice                                                                                     | Status  | Purpose                                                             |
+| ----------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------- |
+| [07 — Semi-automated browser acceptance](planned/07-semi-automated-browser-acceptance.md) | planned | Establish MCP-assisted and human-gated browser acceptance evidence. |
+| [03 — Persistent browser workspace](planned/03-persistent-browser-workspace.md)           | planned | Recover files and metadata; separate them from process state.       |
+| [04 — Browser-local version control](planned/04-browser-local-version-control.md)         | planned | Validate disconnected browser-local Git workflows.                  |
+| [05 — Portable interchange](planned/05-portable-interchange.md)                           | planned | Add archives, patches/bundles, and selected-folder handoff.         |
+| [06 — Optional remote synchronization](planned/06-optional-remote-synchronization.md)     | planned | Add remote import/fetch/push after local Git is proven.             |
 
 ## Completed slices
 
