@@ -49,9 +49,12 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
+          name: candidate-github-pages
       - name: Deploy pull-request candidate to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: candidate-github-pages
 
   verify_candidate:
     if: github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
@@ -107,9 +110,12 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
+          name: rollback-github-pages
       - name: Restore main to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: rollback-github-pages
       - name: Verify restored Pages resources
         run: node scripts/verify-pages.mjs "${{ steps.deployment.outputs.page_url }}"
       - name: Install Chromium
@@ -147,9 +153,12 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
+          name: restore-github-pages
       - name: Restore main after closing an unmerged pull request
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: restore-github-pages
       - name: Verify restored Pages resources
         run: node scripts/verify-pages.mjs "${{ steps.deployment.outputs.page_url }}"
       - name: Install Chromium
