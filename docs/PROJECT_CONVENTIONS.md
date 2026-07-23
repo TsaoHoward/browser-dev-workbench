@@ -40,6 +40,10 @@
 - Name branches as `<type>/<short-kebab-case-summary>`. Allowed types are `feat`, `fix`, `docs`,
   `refactor`, `test`, `chore`, and `ci`; for example, `feat/read-only-github-import` or
   `docs/repository-guidance`.
+- Treat `origin/main` as the protected integration base. Before creating a slice or fix branch,
+  fetch it, fast-forward the local `main` branch only, then create the new branch from that updated
+  local `main`. Do not repair an older feature branch by rebasing it across already merged work;
+  preserve it locally if useful and recreate the focused branch from current `main` instead.
 - Rebase or merge the current target branch before merge when required by repository policy. Do not
   force-push a shared branch without agreement from its collaborators.
 
