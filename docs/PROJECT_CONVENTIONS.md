@@ -110,11 +110,15 @@ A PR may be merged when:
 An empty review decision is not by itself a merge blocker. Approval is required only when enforced
 by the repository ruleset or explicitly required by the maintainers.
 
-GitHub Pages deployment and deployed-origin browser verification can only run after a change reaches
-`main`; they are post-merge release checks. The pull-request workflow must instead run its browser
-smoke suite against a locally served production artifact. This is a pre-merge gate for the artifact,
-not a claim that the public Pages origin has been deployed. Post-merge deployed-origin checks remain
-required before describing deployment as complete.
+Pull requests from this repository deploy their merge result to the public GitHub Pages origin before
+they may merge. The deployed candidate must pass the resource and browser smoke suite. This is a
+production-candidate gate: the candidate is publicly visible but is not a release until its PR is
+merged and the `main` deployment has completed.
+
+The candidate workflow must restore the current `main` artifact when validation, deployment, or
+candidate verification fails, and when an unmerged same-repository PR is closed. A successful
+rollback must run the same deployed-origin smoke suite. Fork PRs never receive Pages write
+permissions and therefore cannot become production candidates.
 
 Do not describe deployment as complete until its post-merge checks have passed. Record a failed
 post-merge check and address it through a focused follow-up change or rollback.
@@ -123,22 +127,23 @@ post-merge check and address it through a focused follow-up change or rollback.
 
 Keep automated verification proportional to the boundary being changed:
 
-- Local and pull-request validation should cover deterministic unit checks, static analysis, the
-  production build, the Pages artifact's base path and required static resources, and a lightweight
-  Chromium smoke suite served from that built artifact. The suite covers the normal capability loop,
-  the unavailable-runtime editor path, and user-initiated selected-folder diagnostics.
+- Pull-request validation should cover deterministic unit checks, static analysis, the production
+  build, the Pages artifact's base path and required static resources. A same-repository PR then
+  deploys its merge result to the public Pages origin and runs a lightweight Chromium smoke suite.
+  The suite covers the normal capability loop, the unavailable-runtime editor path, and
+  user-initiated selected-folder diagnostics.
 - The Pages deployment workflow should independently check the deployed HTML and run the same
-  lightweight Chromium smoke suite against the public origin for release verification.
+  lightweight Chromium smoke suite after `main` deploys for release verification.
 - Browser smoke tests should confirm that the major modules load and are usable, but need not become
   a complete end-to-end test of every editor interaction or WebContainer command. Keep expensive or
   environment-sensitive flows such as package installation and dev-server startup as focused
   follow-up checks until their test environment is stable.
 
-The artifact-preview suite is a pull-request merge gate; deployed-origin checks are post-merge
-release evidence. A successful automated deployment workflow is the canonical record of its own
-scope and result; update the PR or durable slice record only for a failure, deviation, or changed
-verification boundary. Add deeper coverage when a regression shows that the current boundary is
-insufficient.
+The production-candidate smoke suite is a pull-request merge gate. The `main` deployment smoke
+suite remains release evidence. Only one production-candidate or `main` deployment workflow may run
+at a time. A successful automated deployment workflow is the canonical record of its own scope and
+result; update the PR or durable slice record only for a failure, deviation, or changed verification
+boundary. Add deeper coverage when a regression shows that the current boundary is insufficient.
 
 ## Dependencies and browser compatibility
 

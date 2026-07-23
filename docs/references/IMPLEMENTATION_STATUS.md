@@ -28,10 +28,11 @@ workspace. Runtime boot remains intent-triggered, and its boot outcome is cached
 mount, command, and dev-server lifecycle failures.
 
 The repository also provides linting, formatting, Svelte type checking, unit tests, a production
-build, and a GitHub Pages deployment workflow. Pull requests serve the production artifact locally
-and run a lightweight Chromium capability smoke suite before merge. After deployment, the Pages
-workflow fetches the deployed HTML and verifies that its module, stylesheet, and service worker
-resources are available, then runs the same smoke suite against the public origin.
+build, and a GitHub Pages deployment workflow. Same-repository pull requests deploy their merge
+result to the public Pages origin and run a lightweight Chromium capability smoke suite before
+merge; validation, deployment, or smoke failure restores the current `main` artifact. After merge,
+the Pages workflow fetches the deployed HTML and verifies that its module, stylesheet, and service
+worker resources are available, then runs the same smoke suite against the public origin.
 
 ## Not implemented
 
