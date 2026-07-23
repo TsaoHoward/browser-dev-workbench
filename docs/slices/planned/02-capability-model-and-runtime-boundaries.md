@@ -45,7 +45,18 @@ steps they enable, and where runtime, storage, version-control, and remote adapt
 
 This record informs activation; it does not activate the slice or approve an implementation.
 
-### Proposed probe policy
+### Maintainer decisions
+
+The maintainer approved the following directions on 2026-07-22:
+
+1. Adopt the passive-detection plus intent-triggered usable-probe policy below.
+2. Make current Chromium the only required initial browser evidence target. Other browsers remain
+   capability-detected and explicitly unverified; they do not create separate product modes.
+3. Do not select a Worker-hosted or WASM validation toolchain in Slice 02. Establish only the
+   capability and result boundary, then evaluate an actual reduced validation adapter in a later
+   slice against a concrete use case.
+
+### Approved probe policy
 
 Use two phases rather than treating API presence as success:
 
@@ -86,7 +97,7 @@ probe, not evidence that the browser capability itself is unavailable.
 ### Candidate result matrix
 
 The registry should report a capability result and keep operation outcomes separate. The following
-is the proposed activation contract, not a final type design:
+is the approved activation contract, not a final type design:
 
 | Capability or operation           | Passive result                                                                     | Intent-triggered terminal result                                              | Required user-facing outcome                                                                                  |
 | --------------------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
@@ -185,10 +196,11 @@ origin in the current Chromium target, including a service-worker-controlled rel
 unavailable-runtime condition. Archive only after the browser evidence and any deviations are
 recorded.
 
-## Open decisions before activation
+## Remaining activation work
 
-1. Which small set of capability probes is safe to run automatically versus only after explicit
-   user intent (for example, a WebContainer boot or folder picker)?
-2. Which browser versions are the initial evidence targets, and which reduced-capability checks are
-   practical outside Chromium?
-3. Should the first reduced validation adapter be a worker-hosted tool or a WASM toolchain?
+- Record the exact current Chromium/Playwright version in the activation evidence and repeat the
+  passive and full-runtime probes against the Slice 02 deployment.
+- Specify the concrete runtime result types, early-exit handling, cancellation behavior, and bounded
+  dev-server-start timeout before code changes begin.
+- Prepare an explicit manual selected-folder test that records API absence, cancellation, permission
+  denial, and operational failure without treating cancellation as an error.
