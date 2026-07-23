@@ -188,10 +188,6 @@ not a persistence grant or protection from eviction.
 
 ### Evidence still required
 
-- Repeat passive and runtime probes on the Slice 02 deployment after service-worker control.
-- Verify the deployed unavailable-runtime smoke path keeps the editor usable. Keep runtime boot
-  failure mapping covered by the injected runtime unit tests unless a stable browser-level failure
-  setup is available without a production test backdoor.
 - Establish the initial browser evidence matrix; WebContainer's support guidance continues to make
   Chromium the strongest starting point, while other browser behavior must be measured separately.
 - Complete native Chromium selected-folder selection, cancellation, and post-selection
@@ -215,10 +211,12 @@ not a persistence grant or protection from eviction.
 
 ## Validation and exit conditions
 
-Run focused unit tests and `npm run validate`. Verify the capability loop on the deployed Pages
-origin in the current Chromium target, including a service-worker-controlled reload and a graceful
-unavailable-runtime condition. Archive only after the browser evidence and any deviations are
-recorded.
+Run focused unit tests and `npm run validate`. Before merge, same-repository CI must deploy the PR
+merge result to the public Pages origin and verify the capability loop in the current Chromium
+target, including a service-worker-controlled reload and a graceful unavailable-runtime condition.
+Validation failure restores the current `main` artifact. After merge, repeat the smoke suite on the
+deployed Pages origin. Archive only after the required browser evidence has a successful workflow
+result or any deviations are recorded.
 
 ## Implementation progress
 
@@ -235,6 +233,13 @@ recorded.
   maps picker `AbortError`, explicit permission denial, and operational failure without exposing
   raw exceptions. The Pages workflow now includes lightweight unavailable-runtime and
   user-initiated-folder-diagnostic smoke paths; the full runtime flow remains opt-in.
+- 2026-07-23 — Changed pull-request validation to deploy same-repository merge results to the public
+  Pages origin before merge, then run the lightweight Chromium smoke suite. Failed validation or an
+  unmerged PR close restores and verifies the current `main` artifact; fork PRs cannot deploy.
+- 2026-07-23 — A controlled post-deployment smoke failure confirmed the candidate rollback path:
+  the workflow rebuilt, redeployed, and verified `main`. Candidate, rollback, and close-restoration
+  artifacts now use distinct names, because a first drill exposed the deployment action's ambiguity
+  when two artifacts in one run used the default name.
 
 ### Validation to date
 
@@ -245,5 +250,18 @@ recorded.
   was unavailable while the editor remained editable. A separate injected-picker check confirmed
   that folder selection was not called during page load and ran exactly once from the diagnostic
   button.
-- The deployed-origin verification remains an exit condition and must run only after this branch is
-  deployed to Pages.
+- 2026-07-23 — PR #5 merged as `2d70fba`. Its Pages deployment completed successfully, including
+  deployed resource verification and the lightweight Chromium smoke for application mount,
+  console/page errors, cross-origin isolation, capability results, and the explicit OPFS probe.
+  A focused post-merge Chromium run on the Pages origin then completed WebContainer boot,
+  dependency installation, dev-server readiness, and preview iframe verification for the small
+  fixture without console or page errors.
+- 2026-07-23 — PR #6 merged as `126b142`. Its Pages deployment run completed successfully,
+  including deployed resource verification plus all three lightweight Chromium smoke paths: the
+  normal capability loop, the deliberately unisolated editor path, and the injected selected-folder
+  diagnostic. The latter confirms user initiation only; it does not replace native-picker coverage.
+- 2026-07-23 — PR #7 controlled rollback drill run
+  [29996368165](https://github.com/TsaoHoward/browser-dev-workbench/actions/runs/29996368165)
+  passed its deterministic validation, candidate deployment, and all three candidate smoke paths
+  before the intentional terminal failure. Its rollback job rebuilt and redeployed `main`, then
+  passed deployed-resource, normal, unavailable-runtime, and selected-folder smoke verification.

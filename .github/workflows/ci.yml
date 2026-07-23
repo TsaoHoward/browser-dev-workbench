@@ -1,13 +1,19 @@
-name: Validate
+name: Validate and production candidate
 
 on:
   pull_request:
+    types: [closed, opened, reopened, synchronize]
 
 permissions:
   contents: read
 
+concurrency:
+  group: pages-production
+  cancel-in-progress: false
+
 jobs:
   validate:
+    if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,3 +23,147 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run validate
+
+  candidate_deploy:
+    if: github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    needs: validate
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+          name: candidate-github-pages
+      - name: Deploy pull-request candidate to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: candidate-github-pages
+
+  verify_candidate:
+    if: github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    needs: candidate_deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Verify deployed Pages resources
+        run: node scripts/verify-pages.mjs "${{ needs.candidate_deploy.outputs.page_url }}"
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Verify deployed Pages browser smoke
+        run: npm run test:pages:browser -- "${{ needs.candidate_deploy.outputs.page_url }}"
+      - name: Verify unavailable runtime keeps the editor usable
+        run: npm run test:pages:browser:unavailable -- "${{ needs.candidate_deploy.outputs.page_url }}"
+      - name: Verify selected-folder diagnostic stays user initiated
+        run: npm run test:pages:browser:folder -- "${{ needs.candidate_deploy.outputs.page_url }}"
+
+  rollback_candidate:
+    if: >-
+      always() && github.event.action != 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (needs.validate.result == 'failure' || needs.candidate_deploy.result == 'failure' || needs.verify_candidate.result == 'failure')
+    needs: [validate, candidate_deploy, verify_candidate]
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+          name: rollback-github-pages
+      - name: Restore main to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: rollback-github-pages
+      - name: Verify restored Pages resources
+        run: node scripts/verify-pages.mjs "${{ steps.deployment.outputs.page_url }}"
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Verify restored Pages browser smoke
+        run: npm run test:pages:browser -- "${{ steps.deployment.outputs.page_url }}"
+      - name: Verify restored unavailable runtime keeps the editor usable
+        run: npm run test:pages:browser:unavailable -- "${{ steps.deployment.outputs.page_url }}"
+      - name: Verify restored selected-folder diagnostic stays user initiated
+        run: npm run test:pages:browser:folder -- "${{ steps.deployment.outputs.page_url }}"
+
+  restore_after_close:
+    if: >-
+      github.event.action == 'closed' && !github.event.pull_request.merged &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+          name: restore-github-pages
+      - name: Restore main after closing an unmerged pull request
+        id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: restore-github-pages
+      - name: Verify restored Pages resources
+        run: node scripts/verify-pages.mjs "${{ steps.deployment.outputs.page_url }}"
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Verify restored Pages browser smoke
+        run: npm run test:pages:browser -- "${{ steps.deployment.outputs.page_url }}"
+      - name: Verify restored unavailable runtime keeps the editor usable
+        run: npm run test:pages:browser:unavailable -- "${{ steps.deployment.outputs.page_url }}"
+      - name: Verify restored selected-folder diagnostic stays user initiated
+        run: npm run test:pages:browser:folder -- "${{ steps.deployment.outputs.page_url }}"
