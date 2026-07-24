@@ -125,7 +125,12 @@ workspace implementation. Slice 08 — [Versioned work-item traceability](../sli
 is active from GitHub Issue #11 after planning PR #13 and its post-merge Pages verification passed.
 It must prove an automation-first control plane: repository records project Issue state, GitHub
 intake and release failures create reviewable record-sync PRs, and manual Issue maintenance is a
-documented emergency-only exception. The subsequent sequence remains intentionally capability-first:
+documented emergency-only exception. Its first local implementation validates the mandatory
+`AGENTS.md` → Slice → requirement → Issue-record discovery graph, generates the checked-in
+work-item registry, and fails CI when that output or a reciprocal relationship is stale. The
+registry declares a `pending` projection state and expected marker without contacting GitHub;
+least-privilege Issue intake, remote projection, and release-failure automation remain subsequent
+Slice 08 work. The subsequent sequence remains intentionally capability-first:
 
 1. [Slice 08 — Versioned work-item traceability](../slices/active/08-versioned-work-item-traceability.md)
 2. [Slice 04 — Browser-local version control](../slices/planned/04-browser-local-version-control.md)

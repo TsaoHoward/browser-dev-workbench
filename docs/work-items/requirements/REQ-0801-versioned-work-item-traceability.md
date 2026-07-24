@@ -55,3 +55,7 @@ repository records without manual status maintenance.
   revision of the merged planning or activation history. The next progress work will add the
   generated registry, reciprocal-link/projection-marker invariants, and their failure tests before
   enabling privileged GitHub automation.
+- 2026-07-24 — The first implementation boundary is local-only: it validates the contributor
+  discovery graph and regenerates the registry without a token or network request. The `pending`
+  projection state is explicit until the later projection workflow writes and verifies the expected
+  GitHub marker.

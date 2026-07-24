@@ -9,6 +9,7 @@
 | Requirement  | [REQ-0801](../../work-items/requirements/REQ-0801-versioned-work-item-traceability.md)          |
 | Source Issue | [ISSUE-0011](../../work-items/issues/ISSUE-0011-governance-versioned-work-item-traceability.md) |
 | Planning PR  | [#13](https://github.com/TsaoHoward/browser-dev-workbench/pull/13)                              |
+| Delivery     | Pending Slice 08 completion PR                                                                  |
 
 ## Goal
 
@@ -97,6 +98,10 @@ post-merge release verification.
   least-privilege intake, projection, and release-failure workflows with controlled GitHub
   exercises. The later privileged workflows must check out only trusted default-branch code,
   treat event fields as data, and never execute Issue, comment, artifact, or pull-request content.
+- 2026-07-24 — The registry-validation progress implementation adds a checked-in generated registry,
+  reciprocal Markdown-link validation, a controlled pending projection state, and CI stale-output
+  detection. It deliberately does not contact GitHub; a later automation PR must consume the
+  generated expected marker to make the remote projection observable.
 
 ## Remaining implementation plan
 

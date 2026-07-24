@@ -9,6 +9,8 @@ failure.
 - `issues/ISSUE-xxxx-*.md` preserves project-relevant GitHub Issue content, labels, lifecycle
   events, relationships, and restoration instructions.
 - `requirements/REQ-xxxx-*.md` is the canonical versioned requirement record.
+- [registry.md](registry.md) is generated navigation for the one active control-plane chain. It is
+  validated against the primary records and cannot establish an independent relationship.
 - A deployment workflow run is canonical release-verification evidence for a merged SHA. Artifacts
   remain in Actions for their configured retention period; the repository stores only redacted,
   durable links and summaries when needed.
