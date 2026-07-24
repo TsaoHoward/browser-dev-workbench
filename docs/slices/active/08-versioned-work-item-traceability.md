@@ -30,6 +30,10 @@ state of GitHub Issues and connects requirements, slices, delivery, and release 
    reciprocal relationships, and the one-active-slice rule.
 5. Bootstrap `ISSUE-0011` and `REQ-0801`, then use the automation and its exception handling to
    govern this slice through delivery and release verification.
+6. Make the active control-plane relationship self-discoverable from the required contributor
+   reading path. A generated, machine-validated registry must traverse `AGENTS.md` → slice index
+   → active Slice → requirement → Issue record → GitHub projection, and must not become a second
+   authoritative record.
 
 ## Out of scope
 
@@ -46,6 +50,12 @@ state of GitHub Issues and connects requirements, slices, delivery, and release 
   the same event cannot create duplicate Issues or synchronization PRs.
 - A repository-record merge projects the allowed Issue fields to GitHub without embedding a token
   in source, logs, artifacts, or the static bundle.
+- A fresh session can discover the active work item by following `AGENTS.md` alone. CI rejects a
+  missing or inconsistent reciprocal link between the active Slice, requirement, Issue record,
+  delivery relation, registry entry, and GitHub projection marker.
+- Every projected GitHub Issue contains a stable link and machine-readable marker for the versioned
+  Issue record, including its last known repository revision; the registry remains navigable when
+  GitHub is unavailable.
 - A planning PR creates the requirement and planned Slice 08; a later merged progress PR activates
   it. Only one active slice exists on `main`.
 - Delivery and release verification remain distinct records, and artifact expiry leaves a redacted,
@@ -76,3 +86,38 @@ post-merge release verification.
 - 2026-07-24 — The first progress implementation establishes record validation and PR declaration
   contracts. The intake, repository-to-GitHub projection, and release-failure workflows remain
   explicitly incomplete until their least-privilege and untrusted-payload behavior is tested.
+- 2026-07-24 — Issue #11's material follow-up comment expands this active slice only; it does not
+  rewrite planning PR #13 or activation PR #14. The requirement is captured in the bootstrap Issue
+  record and will be reconciled by the normal intake path once that automation exists.
+- 2026-07-24 — The registry will be a checked-in generated navigation document. Its generator will
+  read the primary Slice, requirement, and Issue-record links; CI will regenerate it and fail on a
+  difference, so editing the registry cannot establish or override a relationship.
+- 2026-07-24 — The next progress PR is ordered as: (1) a strict parser/validator plus generated
+  registry and fixture tests; (2) Issue and PR templates and the planning/reciprocity checks; (3)
+  least-privilege intake, projection, and release-failure workflows with controlled GitHub
+  exercises. The later privileged workflows must check out only trusted default-branch code,
+  treat event fields as data, and never execute Issue, comment, artifact, or pull-request content.
+
+## Remaining implementation plan
+
+1. Define the minimal primary fields and pending-state grammar for `ISSUE-xxxx`, `REQ-xxxx`, and
+   Slice documents. The validator must follow their Markdown links from the contributor discovery
+   chain, require reverse links, allow a pending delivery only before a completion PR, and reject
+   a second active Slice.
+2. Generate `docs/work-items/registry.md` from that validated graph. The entry must name the active
+   Slice, requirement, Issue record, external Issue URL, delivery/release state, and the expected
+   GitHub projection marker. Test missing links, mismatched identifiers, stale generated output,
+   unknown projection state, and unavailable-GitHub recovery information.
+3. Add an Issue form that identifies intake type and a PR declaration that identifies the linked
+   work item. Extend CI with the graph/registry validator before the existing slice-lifecycle gate;
+   it must accept the documented `ISSUE-0011` bootstrap state but reject a new manual normal-path
+   mirror update.
+4. Add isolated automation paths: an `issues`/approved material-change intake creates or updates
+   one synchronization branch and PR per external Issue; a trusted default-branch projection job
+   updates allowed GitHub fields and the stable record marker after a record merge; a post-merge
+   verification-failure job creates or reopens the linked follow-up Issue and synchronization PR.
+   Each path needs an event identity, concurrency key, desired-state comparison, and retry-safe
+   branch/PR lookup to prove idempotency.
+5. Exercise intake, manual-exception reconciliation, projection, and release-failure flows against
+   GitHub. Record only the target SHA, workflow URL, redacted summary, and artifact-retention note;
+   do not copy workflow artifacts or raw logs into repository records.

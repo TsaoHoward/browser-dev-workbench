@@ -20,13 +20,18 @@ repository records without manual status maintenance.
 
 1. Versioned Issue records and requirements have documented, validated identifiers, required
    fields, lifecycle states, reciprocal relationships, and restoration limits.
-2. An automated, reviewable path captures external intake and post-merge failure Issue state into a
+2. A generated and machine-validated registry makes the active control-plane chain discoverable
+   from `AGENTS.md` without prior knowledge of an Issue number or file path. It derives from,
+   rather than establishes, the active Slice, requirement, Issue record, delivery relation, and
+   GitHub projection relationship.
+3. An automated, reviewable path captures external intake and post-merge failure Issue state into a
    repository record. Manual sync is allowed only for a documented emergency exception.
-3. A planning PR creates the Issue record, requirement, and planned slice before implementation;
+4. A planning PR creates the Issue record, requirement, and planned slice before implementation;
    only a merged progress PR activates a slice.
-4. Pull-request validation rejects invalid work-item relations and rejects manual control-plane
-   state changes outside the allowed automation and emergency paths.
-5. Delivery and release verification remain distinct: the completion PR records delivery; the
+5. Pull-request validation rejects invalid work-item relations, stale registry output, a missing
+   reciprocal link or projection marker, and manual control-plane state changes outside the allowed
+   automation and emergency paths.
+6. Delivery and release verification remain distinct: the completion PR records delivery; the
    post-merge workflow identifies the same merged SHA without a synthetic success commit.
 
 ## Non-goals
@@ -45,3 +50,8 @@ repository records without manual status maintenance.
   The planning branch may never claim active implementation state.
 - 2026-07-24 — The next implementation branch is created only after this planning record merges to
   `main`; it will add the schema validator, Issue/PR templates, and automation PoC.
+- 2026-07-24 — A material Issue #11 comment added the self-discoverable information-flow
+  requirement after Slice 08 became active. It applies to this active requirement and is not a
+  revision of the merged planning or activation history. The next progress work will add the
+  generated registry, reciprocal-link/projection-marker invariants, and their failure tests before
+  enabling privileged GitHub automation.

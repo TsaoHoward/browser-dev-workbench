@@ -73,11 +73,33 @@ Slice 03 exit condition.
 Open a new session from this issue, create the versioned `REQ-0801` record and planned Slice 08,
 then define the bootstrap validation path and the delivery/release-verification relationship.
 
+## Material GitHub comments
+
+### 2026-07-24 — Self-discoverable information flow
+
+Source: [Issue comment](https://github.com/TsaoHoward/browser-dev-workbench/issues/11#issuecomment-5068645785)
+
+The active Slice 08 scope additionally requires a mandatory discovery chain:
+`AGENTS.md` → slice index → the one active Slice → REQ → ISSUE record → GitHub projection. The
+control plane must add a machine-validated registry/navigation entry that derives and validates the
+active Issue, requirement, Slice, and external projection relationship without becoming a second
+source of truth. It must enforce reciprocal links through the delivery relation and projection
+marker. Each projected GitHub Issue needs a stable link back to the repository Issue record; the
+registry must remain discoverable if GitHub is unavailable, and the GitHub marker must identify the
+last known record if the repository is unavailable. A future session must need only the required
+`AGENTS.md` reading path, not a hand-written Issue number or file path.
+
+This expands active Slice 08 only. It does not alter the already merged planning or activation
+history, and is to be implemented in a later Slice 08 progress PR.
+
 ## Lifecycle events
 
 - 2026-07-24 — GitHub Issue #11 opened as a documentation-labelled governance follow-up.
 - 2026-07-24 — This repository record captured the full source content. It is a documented bootstrap
   exception: future Issue-to-repository synchronization must be automation-created and reviewable.
+- 2026-07-24 — The material scope amendment above was captured as part of the same pre-automation
+  `ISSUE-0011` bootstrap record. Once intake automation is available, it must reconcile this record;
+  this does not authorize another normal-path manual mirror update.
 
 ## Restoration notes
 
