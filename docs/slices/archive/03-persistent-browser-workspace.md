@@ -1,15 +1,16 @@
 # Slice 03 — Persistent browser workspace
 
-| Field             | Value                                                              |
-| ----------------- | ------------------------------------------------------------------ |
-| Status            | completed                                                          |
-| Owner             | repository contributors                                            |
-| Dependencies      | Slice 02 completed                                                 |
-| Activated         | 2026-07-24                                                         |
-| Implementation PR | [#10](https://github.com/TsaoHoward/browser-dev-workbench/pull/10) |
-| Completion PR     | Pending — replace with this closeout PR before review              |
-| Completed         | Pending merge of this closeout PR                                  |
-| Handoff           | none                                                               |
+| Field             | Value                                                                                                   |
+| ----------------- | ------------------------------------------------------------------------------------------------------- |
+| Status            | completed                                                                                               |
+| Owner             | repository contributors                                                                                 |
+| Dependencies      | Slice 02 completed                                                                                      |
+| Activated         | 2026-07-24                                                                                              |
+| Implementation PR | [#10](https://github.com/TsaoHoward/browser-dev-workbench/pull/10)                                      |
+| Completion PR     | Pending — replace with this closeout PR before review                                                   |
+| Completed         | Pending merge of this closeout PR                                                                       |
+| Handoff           | none                                                                                                    |
+| Follow-up         | [#11](https://github.com/TsaoHoward/browser-dev-workbench/issues/11) — versioned work-item traceability |
 
 ## Goal
 
@@ -90,3 +91,6 @@ limits before archiving.
   browser evidence. This archival update is the required closeout step; replace the pending
   completion record before requesting review. Slice 04 remains planned until its implementation
   choices are agreed.
+- 2026-07-24 — [Issue #11](https://github.com/TsaoHoward/browser-dev-workbench/issues/11) tracks
+  versioned work-item traceability as a non-blocking governance follow-up discovered during this
+  closeout. It is not a Slice 03 exit-condition handoff.
