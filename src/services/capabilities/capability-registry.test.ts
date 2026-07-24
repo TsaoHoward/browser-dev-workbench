@@ -86,6 +86,7 @@ describe('detectPassiveCapabilities', () => {
     });
 
     await expect(registry.probeStorageEstimate()).resolves.toEqual({ state: 'ready' });
+    expect(registry.storageEstimate()).toEqual({ quota: 1024, usage: 12 });
     await expect(registry.probeOpfs()).resolves.toEqual({ state: 'ready' });
 
     const failedRegistry = new BrowserCapabilityRegistry(supportedBrowser, {
@@ -97,6 +98,7 @@ describe('detectPassiveCapabilities', () => {
       state: 'failed',
       reason: 'Storage estimation failed.',
     });
+    expect(failedRegistry.storageEstimate()).toBeNull();
     await expect(failedRegistry.probeOpfs()).resolves.toEqual({
       state: 'failed',
       reason: 'OPFS access failed.',

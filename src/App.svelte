@@ -17,7 +17,10 @@
     capabilityLabel,
     type CapabilitySnapshot,
   } from './services/capabilities/capability-registry';
-  import { IndexedDbWorkspaceRepository } from './services/persistence/workspace-repository';
+  import {
+    IndexedDbWorkspaceRepository,
+    WorkspacePersistenceError,
+  } from './services/persistence/workspace-repository';
   import {
     RuntimeOperationError,
     WebContainerRuntime,
@@ -42,6 +45,7 @@
   let ignoredImportPathCount = 0;
   let folderProbeLoading = false;
   let storageProbeLoading = false;
+  let storageEstimateMessage = '';
   let startController: AbortController | null = null;
 
   const capabilityRegistry = new BrowserCapabilityRegistry();
@@ -70,17 +74,20 @@
       const saved = await repository.load();
       if (saved) {
         files = saved.files;
-        importedMetadata = saved.metadata;
-        ignoredImportPathCount = saved.metadata?.ignoredPathCount ?? 0;
+        importedMetadata = saved.metadata.provenance;
+        ignoredImportPathCount = saved.metadata.provenance?.ignoredPathCount ?? 0;
         hasSavedSnapshot = true;
-        selectedPath = files.some((file) => file.path === selectedPath)
-          ? selectedPath
+        selectedPath = files.some((file) => file.path === saved.metadata.editor.selectedPath)
+          ? (saved.metadata.editor.selectedPath ?? selectedPath)
           : (files[0]?.path ?? '');
-        persistenceMessage = `Restored ${files.length} files saved ${formatTimestamp(saved.savedAt)}`;
+        persistenceMessage = `Restored ${files.length} files saved ${formatTimestamp(saved.savedAt)}; runtime processes and previews must be restarted`;
       }
       capabilityRegistry.record('indexeddb-workspace', { state: 'ready' });
       refreshCapabilities();
     } catch (error) {
+      hasSavedSnapshot =
+        error instanceof WorkspacePersistenceError &&
+        (error.code === 'corrupt-snapshot' || error.code === 'migration-failed');
       capabilityRegistry.record('indexeddb-workspace', {
         state: 'failed',
         reason: persistenceErrorMessage(error),
@@ -104,10 +111,20 @@
     dirty = true;
   }
 
+  function selectFile(path: string): void {
+    if (selectedPath === path) return;
+    selectedPath = path;
+    dirty = true;
+  }
+
   async function saveWorkspace(): Promise<void> {
     if (!repository) return;
     try {
-      const snapshot = await repository.save(files, importedMetadata);
+      const snapshot = await repository.save({
+        files,
+        selectedPath,
+        provenance: importedMetadata,
+      });
       dirty = false;
       hasSavedSnapshot = true;
       persistenceMessage = `Saved ${files.length} files ${formatTimestamp(snapshot.savedAt)}`;
@@ -130,10 +147,28 @@
     previewUrl = '';
     dirty = true;
     importedMetadata = undefined;
-    hasSavedSnapshot = false;
-    if (repository) await repository.clear();
-    persistenceMessage = 'Example restored; save to persist it';
-    appendLog('Restored the built-in example workspace.');
+    try {
+      if (repository) await repository.clear();
+      hasSavedSnapshot = false;
+      persistenceMessage = 'Example restored; save to persist it';
+      appendLog('Restored the built-in example workspace.');
+    } catch (error) {
+      persistenceMessage = persistenceErrorMessage(error);
+      appendLog(`Saved browser copy could not be cleared: ${persistenceErrorMessage(error)}`);
+    }
+  }
+
+  async function clearSavedWorkspace(): Promise<void> {
+    if (!repository) return;
+    try {
+      await repository.clear();
+      hasSavedSnapshot = false;
+      persistenceMessage = 'Saved browser copy cleared; the current workspace remains in memory';
+      appendLog('Cleared the saved browser workspace.');
+    } catch (error) {
+      persistenceMessage = persistenceErrorMessage(error);
+      appendLog(`Saved browser copy could not be cleared: ${persistenceErrorMessage(error)}`);
+    }
   }
 
   function openImportDialog(): void {
@@ -178,7 +213,11 @@
           'Saved local snapshot retained; save this import when you are ready to replace it';
         appendLog(`Imported ${files.length} files without changing the saved local snapshot.`);
       } else {
-        const snapshot = await repository.save(files, metadata);
+        const snapshot = await repository.save({
+          files,
+          selectedPath,
+          provenance: metadata,
+        });
         dirty = false;
         hasSavedSnapshot = true;
         persistenceMessage = `Imported ${files.length} files and replaced the saved snapshot ${formatTimestamp(snapshot.savedAt)}`;
@@ -277,6 +316,10 @@
         capabilityRegistry.probeStorageEstimate(),
         capabilityRegistry.probeOpfs(),
       ]);
+      const estimate = capabilityRegistry.storageEstimate();
+      storageEstimateMessage = estimate
+        ? `Estimated ${formatBytes(estimate.usage)} used of ${formatBytes(estimate.quota)} quota; values are approximate.`
+        : '';
       refreshCapabilities();
       appendLog(`Storage probe: IndexedDB ${storage.state}; OPFS ${opfs.state}.`);
     } finally {
@@ -321,6 +364,13 @@
     }).format(new Date(timestamp));
   }
 
+  function formatBytes(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KiB`;
+    if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MiB`;
+    return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GiB`;
+  }
+
   function errorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
   }
@@ -332,8 +382,14 @@
   }
 
   function persistenceErrorMessage(error: unknown): string {
-    if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-      return 'Browser storage is full. Keep editing in memory and export or clear space before saving.';
+    if (error instanceof WorkspacePersistenceError) {
+      if (error.code === 'workspace-too-large') return error.message;
+      if (error.code === 'quota-exceeded') {
+        return 'Browser storage is full. Keep editing in memory and clear saved data before saving.';
+      }
+      if (error.code === 'corrupt-snapshot' || error.code === 'migration-failed') {
+        return 'Saved browser data could not be recovered. Clear it or continue with this in-memory workspace.';
+      }
     }
     return 'Browser storage is unavailable. Keep editing in memory and retry or use a portable export when available.';
   }
@@ -369,9 +425,12 @@
     <button class="secondary" onclick={openImportDialog} disabled={!repository || busy}
       >Import GitHub</button
     >
+    <button class="secondary" onclick={clearSavedWorkspace} disabled={!repository || busy}
+      >Clear saved copy</button
+    >
     <button class="secondary" onclick={resetWorkspace} disabled={busy}>Reset example</button>
     <button class="primary" onclick={saveWorkspace} disabled={!repository || busy}>
-      {dirty ? 'Save workspace*' : 'Workspace saved'}
+      {dirty || !hasSavedSnapshot ? 'Save workspace*' : 'Workspace saved'}
     </button>
   </div>
 </header>
@@ -384,10 +443,7 @@
     </div>
     <nav aria-label="Workspace files">
       {#each files as file (file.path)}
-        <button
-          class:active={selectedPath === file.path}
-          onclick={() => (selectedPath = file.path)}
-        >
+        <button class:active={selectedPath === file.path} onclick={() => selectFile(file.path)}>
           <span class="file-icon">{file.path.endsWith('.svelte') ? 'S' : '<>'}</span>
           {file.path}
         </button>
@@ -408,6 +464,9 @@
         disabled={storageProbeLoading}
         >{storageProbeLoading ? 'Checking storage…' : 'Check storage'}</button
       >
+      {#if storageEstimateMessage}
+        <span>{storageEstimateMessage}</span>
+      {/if}
       <button
         class="capability-probe"
         onclick={probeSelectedFolder}
