@@ -16,6 +16,16 @@ as the portable primary path; evaluate an MCP-capable browser session only as an
 agent-assisted path. Later slices must be able to verify delivered workflows without adding
 test-only product behavior or overstating browser support.
 
+## Handoff from Slice 02
+
+Slice 02 transferred native selected-folder acceptance because its deterministic capability loop and
+injected boundary coverage were complete, while native selection and dismissal needed a reusable,
+human-gated evidence harness. This slice accepts that condition: its scope and acceptance criteria
+require headed selected and dismissed reference scenarios, and its dependency on Slice 02's
+deterministic evidence preserves the capability-model contract. A native post-selection
+`permission-denied` result remains a recorded deviation when the discarded-handle design cannot
+observe it without changing the product boundary.
+
 ## Scope
 
 1. Define three verification levels and their evidence requirements:

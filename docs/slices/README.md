@@ -5,23 +5,22 @@ scope, dependencies, acceptance criteria, risks, validation, and exit conditions
 
 ## Current implementation target
 
-[03 — Persistent browser workspace](active/03-persistent-browser-workspace.md) is active. It
-establishes the bounded, recoverable storage contract that Slice 04 will use for browser-local
-version-control state.
+No slice is active. Slice 04 remains planned while its browser-native Git implementation and
+bounded branch model are selected.
 
 ## Approved sequence
 
-| Slice                                                                                 | Status  | Purpose                                                       |
-| ------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------- |
-| [03 — Persistent browser workspace](active/03-persistent-browser-workspace.md)        | active  | Recover files and metadata; separate them from process state. |
-| [04 — Browser-local version control](planned/04-browser-local-version-control.md)     | planned | Validate disconnected browser-local Git workflows.            |
-| [05 — Portable interchange](planned/05-portable-interchange.md)                       | planned | Add archives, patches/bundles, and selected-folder handoff.   |
-| [06 — Optional remote synchronization](planned/06-optional-remote-synchronization.md) | planned | Add remote import/fetch/push after local Git is proven.       |
+| Slice                                                                                 | Status  | Purpose                                                     |
+| ------------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------- |
+| [04 — Browser-local version control](planned/04-browser-local-version-control.md)     | planned | Validate disconnected browser-local Git workflows.          |
+| [05 — Portable interchange](planned/05-portable-interchange.md)                       | planned | Add archives, patches/bundles, and selected-folder handoff. |
+| [06 — Optional remote synchronization](planned/06-optional-remote-synchronization.md) | planned | Add remote import/fetch/push after local Git is proven.     |
 
 ## Completed slices
 
 | Slice                                                                                                 | Status     | Purpose                                                        |
 | ----------------------------------------------------------------------------------------------------- | ---------- | -------------------------------------------------------------- |
+| [03 — Persistent browser workspace](archive/03-persistent-browser-workspace.md)                       | completed  | Recover files and metadata; separate them from process state.  |
 | [01 — Read-only GitHub import](archive/01-readonly-github-import.md)                                  | completed  | Imported supported public repository files read-only.          |
 | [02 — Capability model and runtime boundaries](archive/02-capability-model-and-runtime-boundaries.md) | completed  | Established the capability registry and runtime boundaries.    |
 | [07 — Semi-automated browser acceptance](archive/07-semi-automated-browser-acceptance.md)             | completed  | Established repeatable browser acceptance evidence.            |
@@ -37,7 +36,9 @@ version-control state.
 
 1. A proposed slice becomes `active/` only after its scope and acceptance criteria are agreed.
 2. The active document records implementation progress, decisions, validation, and deviations.
-3. When its exit conditions are met, update this index and move the document to `archive/`.
+3. A slice-completion PR that meets its exit conditions, or formally hands off a bounded remaining
+   condition to an approved successor, moves the document to `archive/`, updates this index, and
+   updates the implementation status reference in the same change.
 4. Archived documents are historical context, not active instructions.
 
 Only one slice may be the current implementation target at a time.

@@ -76,6 +76,13 @@ Every PR description must state:
 - validation performed and its result;
 - outstanding deployment or manual checks.
 
+When a PR relates to a slice, it must also state the slice name and whether it is a progress PR or
+the slice-completion PR. A completion PR must state that it closes the slice and identify the
+planned next slice; a progress PR must state the work that remains before completion.
+
+Use the repository PR template when one is available; an equivalent description is acceptable only
+when the template cannot be applied.
+
 Include non-goals, linked slices or decision records, risks, rollout notes, and follow-up work when
 they materially apply to the change. Do not require empty or irrelevant sections for small,
 self-contained changes.
@@ -109,6 +116,53 @@ A PR may be merged when:
 
 An empty review decision is not by itself a merge blocker. Approval is required only when enforced
 by the repository ruleset or explicitly required by the maintainers.
+
+### Slice completion and PR closure
+
+Each active slice has exactly one **slice-completion PR**. It may include implementation commits,
+but its merge is the only event that changes that slice from active to completed in the default
+branch. The completion PR must, in the same change:
+
+- satisfy and record the slice's exit conditions and any required validation evidence, or formally
+  hand off a bounded remaining condition as described below;
+- move its document from `docs/slices/active/` to `docs/slices/archive/`, set its status to
+  `completed`, and record the merged PR and completion date;
+- update `docs/slices/README.md` so it no longer names the slice as active and lists it as
+  completed; and
+- update `docs/references/IMPLEMENTATION_STATUS.md` to reflect the delivered state and name the
+  next approved work without activating it prematurely.
+
+A slice-related PR that intentionally delivers only part of a slice is a **progress PR**. It keeps
+the slice active and updates its progress, decisions, risks, and remaining exit conditions in the
+active document. It must not claim completion in its title or description. CI checks the PR
+declaration: a progress PR must update an active slice document, while a completion PR must perform
+the archival and status-reference changes above. A completion PR also records its own number and
+completion date in the archived document before review.
+
+### Slice handoff
+
+A completion PR may hand off a remaining condition only when the original slice has delivered its
+core goal, the condition has a separately bounded successor slice, and treating it as incomplete
+would otherwise make the archived result misleading. A handoff must not bypass a required security,
+candidate-deployment, or merge gate.
+
+The parent archive records the exact condition, its current evidence or deviation, the reason for
+separation, and a link to the successor. The successor must be planned or active before the parent
+is archived; it must name the parent in a `Handoff from Slice NN` section and include the transferred
+condition in its scope, acceptance criteria, and dependencies. The completion PR updates both
+documents, the slice index, and the implementation status reference when the approved work sequence
+or delivered-state description changes. CI requires every completion archive to declare either
+`Handoff: none` or an explicit handoff, and requires an explicit successor record for the latter.
+
+Use handoff only for a genuine change of bounded responsibility. An unmerged completion PR, an
+unknown future task, a failed required check, or an unresolved defect is not a handoff.
+
+If a slice-completion PR is closed without merging, the slice remains active on `main`. Before the
+work is abandoned or continued in another PR, record the disposition and exact next action in the
+active slice through a separate merged documentation update. Do not move a slice to `archive/` from
+an unmerged branch. If post-merge verification fails, record the failure against the archived slice
+and address it with a focused follow-up or reopen the slice when the delivered scope itself is no
+longer valid.
 
 Pull requests from this repository deploy their merge result to the public GitHub Pages origin before
 they may merge. The deployed candidate must pass the resource and browser smoke suite. This is a

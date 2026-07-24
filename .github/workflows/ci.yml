@@ -12,6 +12,19 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  slice_lifecycle:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify declared slice lifecycle
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: >-
+          node scripts/verify-pr-slice-lifecycle.mjs
+          "${{ github.event.pull_request.base.sha }}"
+          "${{ github.event.pull_request.number }}"
+
   validate:
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
@@ -26,7 +39,7 @@ jobs:
 
   candidate_build:
     if: github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
-    needs: validate
+    needs: [slice_lifecycle, validate]
     permissions:
       contents: read
       pages: write

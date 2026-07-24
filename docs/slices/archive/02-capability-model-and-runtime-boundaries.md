@@ -1,11 +1,12 @@
 # Slice 02 — Capability model and runtime boundaries
 
-| Field        | Value                           |
-| ------------ | ------------------------------- |
-| Status       | completed                       |
-| Owner        | repository contributors         |
-| Dependencies | Slice 01 completed and ADR-0002 |
-| Activated    | 2026-07-23                      |
+| Field        | Value                                                                                    |
+| ------------ | ---------------------------------------------------------------------------------------- |
+| Status       | completed                                                                                |
+| Owner        | repository contributors                                                                  |
+| Dependencies | Slice 01 completed and ADR-0002                                                          |
+| Activated    | 2026-07-23                                                                               |
+| Handoff      | Native selected-folder acceptance to [Slice 07](07-semi-automated-browser-acceptance.md) |
 
 ## Goal
 
@@ -271,3 +272,12 @@ result or any deviations are recorded.
   check. A post-selection `permission-denied` result is not a mandatory native scenario because
   this slice queries permission immediately and discards the returned handle; if a platform cannot
   produce it at that point, it must be recorded as a Slice 07 deviation rather than fabricated.
+
+## Accepted handoff
+
+The core capability model, deterministic deployed-origin evidence, and injected selected-folder
+boundary tests were complete. Native selected-folder selection and dismissal required an
+evidence-producing, human-gated runner rather than an ad hoc manual check, so that bounded
+acceptance condition was transferred to [Slice 07](07-semi-automated-browser-acceptance.md).
+Slice 07 owns the headed reference scenarios and records the unavailable native
+`permission-denied` state as a deviation when the discarded-handle design cannot observe it.
