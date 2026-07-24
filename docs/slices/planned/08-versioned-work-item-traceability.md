@@ -7,6 +7,7 @@
 | Dependencies | Slice 03 completed                                                                              |
 | Requirement  | [REQ-0801](../../work-items/requirements/REQ-0801-versioned-work-item-traceability.md)          |
 | Source Issue | [ISSUE-0011](../../work-items/issues/ISSUE-0011-governance-versioned-work-item-traceability.md) |
+| Planning PR  | [#13](https://github.com/TsaoHoward/browser-dev-workbench/pull/13)                              |
 
 ## Goal
 
