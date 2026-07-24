@@ -27,7 +27,7 @@ access; these results are page-session diagnostics, not a durability guarantee o
 workspace. Runtime boot remains intent-triggered, and its boot outcome is cached separately from
 mount, command, and dev-server lifecycle failures.
 
-Slice 03 is active. Workspace persistence now uses a version 3 validated snapshot that includes the
+Slice 03 is complete. Workspace persistence now uses a version 3 validated snapshot that includes the
 single workspace identity, files, selected editor path, optional GitHub import provenance, and an
 opaque future local-repository linkage. Valid version 1 and 2 records migrate on restore; corrupt
 or unsupported records are not loaded into the editor and can be explicitly cleared while the
@@ -117,15 +117,16 @@ without retry or rollback. The retry branch remains unobserved until a real firs
 occurs; it stays bounded at one attempt rather than masking a persistent service or configuration
 failure.
 
-Slice 03 — [Persistent browser workspace](../slices/active/03-persistent-browser-workspace.md) is
-active. Its approved storage direction is a bounded, validated IndexedDB workspace snapshot;
-OPFS remains an evaluated capability and a possible Slice 04 repository-storage candidate, not a
-second workspace implementation. The subsequent sequence remains intentionally capability-first:
+Slice 03 — [Persistent browser workspace](../slices/archive/03-persistent-browser-workspace.md) is
+complete; its implementation was delivered in [PR #10](https://github.com/TsaoHoward/browser-dev-workbench/pull/10).
+Its approved storage direction is a bounded, validated IndexedDB workspace snapshot; OPFS remains
+an evaluated capability and a possible Slice 04 repository-storage candidate, not a second
+workspace implementation. No slice is active. The subsequent sequence remains intentionally
+capability-first:
 
-1. [Slice 03 — Persistent browser workspace](../slices/active/03-persistent-browser-workspace.md)
-2. [Slice 04 — Browser-local version control](../slices/planned/04-browser-local-version-control.md)
-3. [Slice 05 — Portable interchange](../slices/planned/05-portable-interchange.md)
-4. [Slice 06 — Optional remote synchronization](../slices/planned/06-optional-remote-synchronization.md)
+1. [Slice 04 — Browser-local version control](../slices/planned/04-browser-local-version-control.md)
+2. [Slice 05 — Portable interchange](../slices/planned/05-portable-interchange.md)
+3. [Slice 06 — Optional remote synchronization](../slices/planned/06-optional-remote-synchronization.md)
 
 The former session-only GitHub publish plan is [superseded historical research](../slices/archive/02-session-only-github-publish.md),
 not approved work. Its remote-authentication conclusions must be revalidated against official

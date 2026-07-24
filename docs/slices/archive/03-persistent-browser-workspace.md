@@ -1,11 +1,16 @@
 # Slice 03 — Persistent browser workspace
 
-| Field        | Value                   |
-| ------------ | ----------------------- |
-| Status       | active                  |
-| Owner        | repository contributors |
-| Dependencies | Slice 02 completed      |
-| Activated    | 2026-07-24              |
+| Field             | Value                                                                                                   |
+| ----------------- | ------------------------------------------------------------------------------------------------------- |
+| Status            | completed                                                                                               |
+| Owner             | repository contributors                                                                                 |
+| Dependencies      | Slice 02 completed                                                                                      |
+| Activated         | 2026-07-24                                                                                              |
+| Implementation PR | [#10](https://github.com/TsaoHoward/browser-dev-workbench/pull/10)                                      |
+| Completion PR     | [#12](https://github.com/TsaoHoward/browser-dev-workbench/pull/12)                                      |
+| Completed         | 2026-07-24                                                                                              |
+| Handoff           | none                                                                                                    |
+| Follow-up         | [#11](https://github.com/TsaoHoward/browser-dev-workbench/issues/11) — versioned work-item traceability |
 
 ## Goal
 
@@ -82,3 +87,9 @@ limits before archiving.
   The browser's native quota limit was not intentionally exhausted; quota handling is covered by
   the classified `QuotaExceededError` boundary because a safe deterministic browser-quota
   simulation is unavailable.
+- 2026-07-24 — PR #10 merged the implementation and recorded the required validation and local
+  browser evidence. PR #12 is the required archival closeout; Slice 04 remains planned until its
+  implementation choices are agreed.
+- 2026-07-24 — [Issue #11](https://github.com/TsaoHoward/browser-dev-workbench/issues/11) tracks
+  versioned work-item traceability as a non-blocking governance follow-up discovered during this
+  closeout. It is not a Slice 03 exit-condition handoff.
