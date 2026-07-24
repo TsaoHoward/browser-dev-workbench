@@ -2,9 +2,10 @@
 
 | Field        | Value                                                                                           |
 | ------------ | ----------------------------------------------------------------------------------------------- |
-| Status       | planned                                                                                         |
+| Status       | active                                                                                          |
 | Owner        | repository contributors                                                                         |
 | Dependencies | Slice 03 completed                                                                              |
+| Activated    | 2026-07-24                                                                                      |
 | Requirement  | [REQ-0801](../../work-items/requirements/REQ-0801-versioned-work-item-traceability.md)          |
 | Source Issue | [ISSUE-0011](../../work-items/issues/ISSUE-0011-governance-versioned-work-item-traceability.md) |
 | Planning PR  | [#13](https://github.com/TsaoHoward/browser-dev-workbench/pull/13)                              |
@@ -66,3 +67,12 @@ post-merge release verification.
    GitHub App, given required Issue, contents, and pull-request permissions?
 3. Which machine-readable record format gives strict validation without making the durable human
    review document unreadable?
+
+## Decisions and implementation progress
+
+- 2026-07-24 — Slice 08 was activated only after planning PR #13 merged and its post-merge Pages
+  workflow passed. The implementation branch was created from that merged `main` state, not by
+  rebasing the earlier bootstrap branch.
+- 2026-07-24 — The first progress implementation establishes record validation and PR declaration
+  contracts. The intake, repository-to-GitHub projection, and release-failure workflows remain
+  explicitly incomplete until their least-privilege and untrusted-payload behavior is tested.

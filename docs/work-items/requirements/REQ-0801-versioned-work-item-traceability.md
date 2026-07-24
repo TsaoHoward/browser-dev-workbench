@@ -4,7 +4,7 @@
 | -------------------- | --------------------------------------------------------------------------------- |
 | Status               | planned                                                                           |
 | Source Issue         | [ISSUE-0011](../issues/ISSUE-0011-governance-versioned-work-item-traceability.md) |
-| Slice                | [Slice 08](../../slices/planned/08-versioned-work-item-traceability.md)           |
+| Slice                | [Slice 08](../../slices/active/08-versioned-work-item-traceability.md)            |
 | Delivery             | Pending Slice 08 completion PR                                                    |
 | Release verification | Post-merge `Deploy GitHub Pages` workflow for the delivery SHA                    |
 
