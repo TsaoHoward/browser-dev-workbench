@@ -87,6 +87,35 @@ Include non-goals, linked slices or decision records, risks, rollout notes, and 
 they materially apply to the change. Do not require empty or irrelevant sections for small,
 self-contained changes.
 
+### Work-item control plane
+
+GitHub Issues are a collaboration projection, not the durable source of project state. Versioned
+`ISSUE-xxxx` records preserve the project-relevant Issue content and lifecycle; linked `REQ-xxxx`
+records are the canonical requirement state. A pull request, slice, delivery merge, and
+release-verification run must link to these records when the work is not an explicitly exempt,
+non-behavioral maintenance change.
+
+The normal lifecycle is automation-first:
+
+1. An external intake Issue is captured into a repository Issue record by a reviewable automation
+   pull request. Internal work originates from a versioned Issue record and requirement change, not
+   from manually creating or editing a GitHub Issue.
+2. A planning pull request adds the Issue record, requirement, and any planned slice. Only after it
+   merges may an implementation branch be created from the updated `main` branch.
+3. An implementation progress pull request activates its planned slice as part of a merged change.
+   A slice is not active merely because an unmerged branch contains an `active/` document.
+4. A completion merge records delivery. The post-merge workflow is the canonical release evidence
+   for that merged SHA. On failure, automation opens or reopens the follow-up Issue and creates a
+   reviewable repository-record synchronization pull request; it never writes directly to `main`.
+
+Humans may author branches, commits, and pull requests, but must not manually maintain Issue
+title/body, labels, state, cross-links, or repository mirror state after the control plane exists.
+Allowed exceptions are an external intake submitted through an Issue form and a documented emergency
+incident action. An emergency exception must identify its operator, reason, affected SHA where
+available, and a `manual-exception` marker; automation must reconcile it into a versioned record
+before further delivery work proceeds. Comments may aid discussion, but material decisions are
+captured through a repository pull request rather than left only in a comment.
+
 ### Pull request lifecycle and merge gates
 
 A pull request normally moves through these states:
@@ -160,9 +189,10 @@ unknown future task, a failed required check, or an unresolved defect is not a h
 If a slice-completion PR is closed without merging, the slice remains active on `main`. Before the
 work is abandoned or continued in another PR, record the disposition and exact next action in the
 active slice through a separate merged documentation update. Do not move a slice to `archive/` from
-an unmerged branch. If post-merge verification fails, record the failure against the archived slice
-and address it with a focused follow-up or reopen the slice when the delivered scope itself is no
-longer valid.
+an unmerged branch. If post-merge verification fails, the work-item control plane opens or reopens a
+follow-up Issue and creates its versioned record through a reviewable synchronization pull request.
+Address it with a focused follow-up or reopen the slice when the delivered scope itself is no longer
+valid.
 
 Pull requests from this repository deploy their merge result to the public GitHub Pages origin before
 they may merge. The deployed candidate must pass the resource and browser smoke suite. This is a
