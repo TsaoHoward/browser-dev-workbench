@@ -8,7 +8,7 @@ status, or the approved next implementation work. Do not duplicate this content 
 
 1. Load a built-in multi-file Svelte/Vite project.
 2. Edit files in the browser.
-3. Save and restore the workspace with IndexedDB.
+3. Save and restore a bounded, versioned workspace snapshot with IndexedDB.
 4. Mount the workspace into a WebContainer.
 5. Run `npm install` and retain the generated `package-lock.json` in browser storage.
 6. Run `npm run dev` and stream process output into the runtime log.
@@ -26,6 +26,15 @@ and `SharedArrayBuffer` requirements. A user can explicitly probe storage estima
 access; these results are page-session diagnostics, not a durability guarantee or an OPFS-backed
 workspace. Runtime boot remains intent-triggered, and its boot outcome is cached separately from
 mount, command, and dev-server lifecycle failures.
+
+Slice 03 is active. Workspace persistence now uses a version 3 validated snapshot that includes the
+single workspace identity, files, selected editor path, optional GitHub import provenance, and an
+opaque future local-repository linkage. Valid version 1 and 2 records migrate on restore; corrupt
+or unsupported records are not loaded into the editor and can be explicitly cleared while the
+in-memory workspace remains usable. Saves enforce the existing 200-file, 1 MiB-per-file, 5 MiB-total
+UTF-8 budget, distinguish quota and unavailable-storage failures, and never serialize runtime
+processes, logs, dependency memory, or preview URLs. The browser's quota display is approximate
+diagnostic evidence rather than a durability or save-admission guarantee.
 
 The repository also provides linting, formatting, Svelte type checking, unit tests, a production
 build, and a GitHub Pages deployment workflow. Same-repository pull requests deploy their merge
@@ -108,9 +117,12 @@ without retry or rollback. The retry branch remains unobserved until a real firs
 occurs; it stays bounded at one attempt rather than masking a persistent service or configuration
 failure.
 
-No slice is active. The subsequent sequence remains intentionally capability-first:
+Slice 03 — [Persistent browser workspace](../slices/active/03-persistent-browser-workspace.md) is
+active. Its approved storage direction is a bounded, validated IndexedDB workspace snapshot;
+OPFS remains an evaluated capability and a possible Slice 04 repository-storage candidate, not a
+second workspace implementation. The subsequent sequence remains intentionally capability-first:
 
-1. [Slice 03 — Persistent browser workspace](../slices/planned/03-persistent-browser-workspace.md)
+1. [Slice 03 — Persistent browser workspace](../slices/active/03-persistent-browser-workspace.md)
 2. [Slice 04 — Browser-local version control](../slices/planned/04-browser-local-version-control.md)
 3. [Slice 05 — Portable interchange](../slices/planned/05-portable-interchange.md)
 4. [Slice 06 — Optional remote synchronization](../slices/planned/06-optional-remote-synchronization.md)

@@ -48,6 +48,11 @@ export interface SelectedFolderHandle {
   queryPermission?: (descriptor?: { mode?: 'read' | 'readwrite' }) => Promise<PermissionState>;
 }
 
+export interface StorageEstimateMeasurement {
+  quota: number;
+  usage: number;
+}
+
 export function readBrowserCapabilityDependencies(): BrowserCapabilityDependencies {
   const browser = globalThis as typeof globalThis & {
     showDirectoryPicker?: unknown;
@@ -125,6 +130,7 @@ export function detectPassiveCapabilities(
 export class BrowserCapabilityRegistry {
   #probes: BrowserCapabilityProbes;
   #snapshot: CapabilitySnapshot;
+  #storageEstimate: StorageEstimateMeasurement | null = null;
 
   constructor(
     dependencies: BrowserCapabilityDependencies = readBrowserCapabilityDependencies(),
@@ -140,6 +146,10 @@ export class BrowserCapabilityRegistry {
 
   snapshot(): CapabilitySnapshot {
     return structuredClone(this.#snapshot);
+  }
+
+  storageEstimate(): StorageEstimateMeasurement | null {
+    return this.#storageEstimate ? { ...this.#storageEstimate } : null;
   }
 
   record(id: CapabilityId, result: CapabilityResult): void {
@@ -160,9 +170,14 @@ export class BrowserCapabilityRegistry {
       const result = Number.isFinite(estimate.quota)
         ? ({ state: 'ready' } as const)
         : ({ state: 'failed', reason: 'Storage quota is unavailable.' } as const);
+      this.#storageEstimate =
+        result.state === 'ready'
+          ? { quota: estimate.quota!, usage: Number.isFinite(estimate.usage) ? estimate.usage! : 0 }
+          : null;
       this.record('indexeddb-workspace', result);
       return result;
     } catch {
+      this.#storageEstimate = null;
       const result = { state: 'failed', reason: 'Storage estimation failed.' } as const;
       this.record('indexeddb-workspace', result);
       return result;

@@ -5,15 +5,15 @@ scope, dependencies, acceptance criteria, risks, validation, and exit conditions
 
 ## Current implementation target
 
-No slice is active. [07 — Semi-automated browser acceptance](archive/07-semi-automated-browser-acceptance.md)
-is complete. [03 — Persistent browser workspace](planned/03-persistent-browser-workspace.md) is the
-next approved target and must be activated before implementation begins.
+[03 — Persistent browser workspace](active/03-persistent-browser-workspace.md) is active. It
+establishes the bounded, recoverable storage contract that Slice 04 will use for browser-local
+version-control state.
 
 ## Approved sequence
 
 | Slice                                                                                 | Status  | Purpose                                                       |
 | ------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------- |
-| [03 — Persistent browser workspace](planned/03-persistent-browser-workspace.md)       | planned | Recover files and metadata; separate them from process state. |
+| [03 — Persistent browser workspace](active/03-persistent-browser-workspace.md)        | active  | Recover files and metadata; separate them from process state. |
 | [04 — Browser-local version control](planned/04-browser-local-version-control.md)     | planned | Validate disconnected browser-local Git workflows.            |
 | [05 — Portable interchange](planned/05-portable-interchange.md)                       | planned | Add archives, patches/bundles, and selected-folder handoff.   |
 | [06 — Optional remote synchronization](planned/06-optional-remote-synchronization.md) | planned | Add remote import/fetch/push after local Git is proven.       |
