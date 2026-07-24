@@ -121,12 +121,16 @@ Slice 03 — [Persistent browser workspace](../slices/archive/03-persistent-brow
 complete; its implementation was delivered in [PR #10](https://github.com/TsaoHoward/browser-dev-workbench/pull/10).
 Its approved storage direction is a bounded, validated IndexedDB workspace snapshot; OPFS remains
 an evaluated capability and a possible Slice 04 repository-storage candidate, not a second
-workspace implementation. No slice is active. The subsequent sequence remains intentionally
-capability-first:
+workspace implementation. No slice is active. Slice 08 — [Versioned work-item traceability](../slices/planned/08-versioned-work-item-traceability.md)
+is planned from GitHub Issue #11. Its first implementation must prove an automation-first control
+plane: repository records project Issue state, GitHub intake and release failures create reviewable
+record-sync PRs, and manual Issue maintenance is a documented emergency-only exception. The
+subsequent sequence remains intentionally capability-first:
 
-1. [Slice 04 — Browser-local version control](../slices/planned/04-browser-local-version-control.md)
-2. [Slice 05 — Portable interchange](../slices/planned/05-portable-interchange.md)
-3. [Slice 06 — Optional remote synchronization](../slices/planned/06-optional-remote-synchronization.md)
+1. [Slice 08 — Versioned work-item traceability](../slices/planned/08-versioned-work-item-traceability.md)
+2. [Slice 04 — Browser-local version control](../slices/planned/04-browser-local-version-control.md)
+3. [Slice 05 — Portable interchange](../slices/planned/05-portable-interchange.md)
+4. [Slice 06 — Optional remote synchronization](../slices/planned/06-optional-remote-synchronization.md)
 
 The former session-only GitHub publish plan is [superseded historical research](../slices/archive/02-session-only-github-publish.md),
 not approved work. Its remote-authentication conclusions must be revalidated against official

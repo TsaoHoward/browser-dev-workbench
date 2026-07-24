@@ -18,7 +18,8 @@ For the current implementation status, known constraints, and planned work, see 
 The repository's durable contribution guidance lives in [AGENTS.md](AGENTS.md), the
 [project conventions](docs/PROJECT_CONVENTIONS.md), and the [slice index](docs/slices/README.md).
 Read those documents before changing code; the slice index identifies the current implementation
-target, when one is active, and the approved next slice.
+target, when one is active, and the approved next slice. Versioned work-item records and their
+automation-first lifecycle are documented in [docs/work-items](docs/work-items/README.md).
 
 ## Architecture
 
