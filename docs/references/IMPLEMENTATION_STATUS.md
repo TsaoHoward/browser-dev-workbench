@@ -91,29 +91,29 @@ concern, not a prerequisite for Workspace Core, Runtime Adapters, or browser-loc
 
 ## Active and next work
 
-Slice 07 is the active implementation target. It extends the delivered deterministic browser smoke
-with structured evidence and a headed Playwright path for native selected-folder selection and
-dismissal. MCP is optional agent-assisted diagnostics, not a prerequisite or merge gate. A native
-post-selection permission denial is recorded only when the platform can expose it without retaining
-a handle; otherwise the existing injected-boundary test is evidence and the native limitation is a
-documented deviation. The native reference scenarios and the candidate deployment checks for commit
-`4af1f18` passed; the remaining Slice 07 exit work is the optional MCP-path evaluation and its
-decision record. However, a later PR #8 candidate run failed at `actions/deploy-pages@v4` while
-GitHub Pages listed candidate artifact metadata (403); that is external to the workbench. Candidate
-deployment now retries exactly once against the same artifact before rollback, preserving a bounded
-failure signal while absorbing a transient artifact API failure. The failed run also exposed a
-workflow compatibility and evidence-attribution defect: rollback verification used an old `main`
-runner with new flags and labelled the restored artifact with the PR merge SHA. Rollback and close
-restoration now build `main` separately, run the PR harness after deployment, and record the actual
-restored `main` SHA. Treat the prior candidate checks as successful evidence for commit `4af1f18`,
-but do not treat the earlier rollback as verified until the revised recovery path passes in GitHub
-Actions. The subsequent sequence remains intentionally capability-first:
+Slice 07 is complete and [archived](../slices/archive/07-semi-automated-browser-acceptance.md).
+Playwright remains the primary portable path: its deterministic deployed-origin smoke emits
+redacted JSON evidence and screenshots, while headed native selected-folder scenarios retain human
+control over browser-native dialogs. MCP is not adopted: no MCP-capable browser session was
+available to meet the deployed-origin, browser-context, user-gesture, artifact-capture, and
+reproducibility requirements, and it is neither a runtime nor release dependency.
 
-1. [Slice 07 — Semi-automated browser acceptance](../slices/active/07-semi-automated-browser-acceptance.md)
-2. [Slice 03 — Persistent browser workspace](../slices/planned/03-persistent-browser-workspace.md)
-3. [Slice 04 — Browser-local version control](../slices/planned/04-browser-local-version-control.md)
-4. [Slice 05 — Portable interchange](../slices/planned/05-portable-interchange.md)
-5. [Slice 06 — Optional remote synchronization](../slices/planned/06-optional-remote-synchronization.md)
+The candidate deployment workflow now retries one failed deployment against the same artifact before
+rollback. PR #9 run [30064427931](https://github.com/TsaoHoward/browser-dev-workbench/actions/runs/30064427931)
+intentionally failed only after its candidate resources and three browser paths passed; the revised
+rollback restored `main` commit `9a074795` and passed the restored resources and three browser
+paths. The subsequent normal candidate run
+[30064585744](https://github.com/TsaoHoward/browser-dev-workbench/actions/runs/30064585744) passed
+without retry or rollback. The retry branch remains unobserved until a real first deployment failure
+occurs; it stays bounded at one attempt rather than masking a persistent service or configuration
+failure.
+
+No slice is active. The subsequent sequence remains intentionally capability-first:
+
+1. [Slice 03 — Persistent browser workspace](../slices/planned/03-persistent-browser-workspace.md)
+2. [Slice 04 — Browser-local version control](../slices/planned/04-browser-local-version-control.md)
+3. [Slice 05 — Portable interchange](../slices/planned/05-portable-interchange.md)
+4. [Slice 06 — Optional remote synchronization](../slices/planned/06-optional-remote-synchronization.md)
 
 The former session-only GitHub publish plan is [superseded historical research](../slices/archive/02-session-only-github-publish.md),
 not approved work. Its remote-authentication conclusions must be revalidated against official

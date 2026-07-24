@@ -2,10 +2,11 @@
 
 | Field        | Value                           |
 | ------------ | ------------------------------- |
-| Status       | active                          |
+| Status       | completed                       |
 | Owner        | repository contributors         |
 | Dependencies | Slice 02 deterministic evidence |
 | Activated    | 2026-07-23                      |
+| Completed    | 2026-07-24                      |
 
 ## Goal
 
@@ -89,12 +90,15 @@ npm run test:pages:browser:folder:selected -- <pages-url> --evidence-dir accepta
 npm run test:pages:browser:folder:dismissed -- <pages-url> --evidence-dir acceptance-evidence/dismissed
 ```
 
-## Remaining exit decision
+## MCP-path decision
 
-1. Which MCP-capable browser tool can operate against the deployed origin with useful artifact
-   capture while respecting native user-activation boundaries?
-2. Can an MCP session add material diagnostic value beyond the Playwright evidence without becoming
-   a CI or release dependency?
+No MCP-capable browser session was available in the evaluation environment. The available tools
+could inspect remote content but could not operate a deployed page with browser-context JavaScript,
+preserve a user gesture for native UI, collect browser-session artifacts, or reproduce the headed
+folder scenarios. Therefore the MCP path provided no independent evidence or diagnostic value beyond
+the Playwright harness. Do not add an MCP dependency, product hook, workflow gate, or browser-control
+endpoint for this slice. Re-evaluate only when an MCP browser session can satisfy all of those
+boundaries without becoming a runtime or release prerequisite.
 
 ## Decisions and implementation progress
 
@@ -135,6 +139,21 @@ npm run test:pages:browser:folder:dismissed -- <pages-url> --evidence-dir accept
   job had checked out `main`, whose older runner rejected them. Rollback and close-restoration now
   build `main` in a separate checkout while using the PR checkout as the verification harness, and
   record the deployed `main` SHA rather than the PR merge SHA in acceptance evidence. Do not claim
-  that the earlier rollback was verified; the revised workflow must pass a new run before this
-  recovery path is considered evidenced. If both deployment attempts fail, investigate
+  that the earlier rollback was verified; the revised recovery path is evidenced separately by the
+  subsequent PR #9 run below. If both deployment attempts fail, investigate
   Pages/Actions service state and deployment permissions rather than increasing the retry count.
+- 2026-07-24 — The intentional post-verification failure in PR #9 run
+  [30064427931](https://github.com/TsaoHoward/browser-dev-workbench/actions/runs/30064427931)
+  exercised the revised rollback path. The candidate resource check and all three deterministic
+  browser paths passed before the declared failure. Rollback then built and deployed `main` commit
+  `9a074795`, passed the restored-origin resource check and all three browser paths, and uploaded
+  six redacted acceptance-evidence files. The temporary failure was removed immediately afterward.
+- 2026-07-24 — The final normal candidate run for PR #9
+  [30064585744](https://github.com/TsaoHoward/browser-dev-workbench/actions/runs/30064585744)
+  passed validation, artifact build, candidate deployment, deployed resource verification, and all
+  three browser paths without retry or rollback. The bounded deployment-retry branch remains
+  intentionally unexercised until a real first deployment failure occurs.
+- 2026-07-24 — MCP-path evaluation found no MCP-capable browser session in this environment. The
+  available remote-content tooling cannot meet the deployed-origin, user-gesture, browser-context,
+  artifact, or reproducibility requirements. Playwright remains the primary path; MCP is not
+  adopted as a dependency or gate.
