@@ -5,9 +5,9 @@ scope, dependencies, acceptance criteria, risks, validation, and exit conditions
 
 ## Current implementation target
 
-[07 — Semi-automated browser acceptance](active/07-semi-automated-browser-acceptance.md) is active.
-It establishes repeatable browser evidence, with a Playwright-led human-gated path for native
-browser actions, before persistent-workspace work begins.
+No slice is active. [07 — Semi-automated browser acceptance](archive/07-semi-automated-browser-acceptance.md)
+is complete. [03 — Persistent browser workspace](planned/03-persistent-browser-workspace.md) is the
+next approved target and must be activated before implementation begins.
 
 ## Approved sequence
 
@@ -24,6 +24,7 @@ browser actions, before persistent-workspace work begins.
 | ----------------------------------------------------------------------------------------------------- | ---------- | -------------------------------------------------------------- |
 | [01 — Read-only GitHub import](archive/01-readonly-github-import.md)                                  | completed  | Imported supported public repository files read-only.          |
 | [02 — Capability model and runtime boundaries](archive/02-capability-model-and-runtime-boundaries.md) | completed  | Established the capability registry and runtime boundaries.    |
+| [07 — Semi-automated browser acceptance](archive/07-semi-automated-browser-acceptance.md)             | completed  | Established repeatable browser acceptance evidence.            |
 | [02 — Session-only GitHub publish](archive/02-session-only-github-publish.md)                         | superseded | Preserved remote-authentication research; never implemented.   |
 | [00 — AI repository foundation](archive/00-ai-repository-foundation.md)                               | completed  | Established contributor guidance and durable planning records. |
 
