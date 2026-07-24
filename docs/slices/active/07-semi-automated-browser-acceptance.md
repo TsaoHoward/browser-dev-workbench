@@ -128,9 +128,13 @@ npm run test:pages:browser:folder:dismissed -- <pages-url> --evidence-dir accept
   [30014970968](https://github.com/TsaoHoward/browser-dev-workbench/actions/runs/30014970968)
   failed before candidate browser smoke: `actions/deploy-pages@v4` received a 403 while listing the
   uploaded candidate artifact metadata. This is an external Pages/Actions API failure, not a
-  workbench test failure. Its rollback job reached main-artifact deployment but could not complete
-  restored-origin verification: the PR workflow passes the new browser-runner flags while the job
-  has checked out `main`, whose older runner rejects those flags. Do not claim that this rollback was
-  verified. Next investigation: make rollback and close-restoration use the PR harness after
-  deploying the `main` artifact, then re-run the failed workflow jobs once. If the deployment 403
-  repeats, investigate Pages/Actions service state and deployment permissions before adding retries.
+  workbench test failure. The workflow now retries exactly once with the same candidate artifact
+  before rolling back, so a transient artifact API failure does not block routine PR iteration or
+  create a second candidate build. Its rollback job reached main-artifact deployment but could not
+  complete restored-origin verification: the PR workflow passed new browser-runner flags while the
+  job had checked out `main`, whose older runner rejected them. Rollback and close-restoration now
+  build `main` in a separate checkout while using the PR checkout as the verification harness, and
+  record the deployed `main` SHA rather than the PR merge SHA in acceptance evidence. Do not claim
+  that the earlier rollback was verified; the revised workflow must pass a new run before this
+  recovery path is considered evidenced. If both deployment attempts fail, investigate
+  Pages/Actions service state and deployment permissions rather than increasing the retry count.

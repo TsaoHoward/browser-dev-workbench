@@ -99,12 +99,15 @@ a handle; otherwise the existing injected-boundary test is evidence and the nati
 documented deviation. The native reference scenarios and the candidate deployment checks for commit
 `4af1f18` passed; the remaining Slice 07 exit work is the optional MCP-path evaluation and its
 decision record. However, a later PR #8 candidate run failed at `actions/deploy-pages@v4` while
-GitHub Pages listed candidate artifact metadata (403); that is external to the workbench. Its
-rollback verification also exposed a workflow compatibility defect: the PR workflow passes new runner flags after
-checking out old `main`, whose runner rejects them. Treat the prior candidate checks as successful
-evidence for commit `4af1f18`, but do not treat the later rollback as verified until its harness
-checkout ordering is corrected and the run is retried. The subsequent sequence remains intentionally
-capability-first:
+GitHub Pages listed candidate artifact metadata (403); that is external to the workbench. Candidate
+deployment now retries exactly once against the same artifact before rollback, preserving a bounded
+failure signal while absorbing a transient artifact API failure. The failed run also exposed a
+workflow compatibility and evidence-attribution defect: rollback verification used an old `main`
+runner with new flags and labelled the restored artifact with the PR merge SHA. Rollback and close
+restoration now build `main` separately, run the PR harness after deployment, and record the actual
+restored `main` SHA. Treat the prior candidate checks as successful evidence for commit `4af1f18`,
+but do not treat the earlier rollback as verified until the revised recovery path passes in GitHub
+Actions. The subsequent sequence remains intentionally capability-first:
 
 1. [Slice 07 — Semi-automated browser acceptance](../slices/active/07-semi-automated-browser-acceptance.md)
 2. [Slice 03 — Persistent browser workspace](../slices/planned/03-persistent-browser-workspace.md)

@@ -24,18 +24,13 @@ jobs:
       - run: npm ci
       - run: npm run validate
 
-  candidate_deploy:
+  candidate_build:
     if: github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
     needs: validate
     permissions:
       contents: read
       pages: write
       id-token: write
-    outputs:
-      page_url: ${{ steps.deployment.outputs.page_url }}
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -50,16 +45,59 @@ jobs:
         with:
           path: dist
           name: candidate-github-pages
+
+  candidate_deploy:
+    if: github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    needs: candidate_build
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
       - name: Deploy pull-request candidate to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
         with:
           artifact_name: candidate-github-pages
 
-  verify_candidate:
-    if: github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
-    needs: candidate_deploy
+  candidate_deploy_retry:
+    if: >-
+      always() && github.event.action != 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      needs.candidate_build.result == 'success' && needs.candidate_deploy.result == 'failure'
+    needs: [candidate_build, candidate_deploy]
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    steps:
+      - name: Retry pull-request candidate deployment to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: candidate-github-pages
+
+  verify_candidate:
+    if: >-
+      always() && github.event.action != 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (needs.candidate_deploy.result == 'success' || needs.candidate_deploy_retry.result == 'success')
+    needs: [candidate_deploy, candidate_deploy_retry]
+    runs-on: ubuntu-latest
+    env:
+      CANDIDATE_PAGE_URL: ${{ needs.candidate_deploy.result == 'success' && needs.candidate_deploy.outputs.page_url || needs.candidate_deploy_retry.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -68,22 +106,22 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Verify deployed Pages resources
-        run: node scripts/verify-pages.mjs "${{ needs.candidate_deploy.outputs.page_url }}"
+        run: node scripts/verify-pages.mjs "$CANDIDATE_PAGE_URL"
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Verify deployed Pages browser smoke
         run: >-
-          npm run test:pages:browser -- "${{ needs.candidate_deploy.outputs.page_url }}"
+          npm run test:pages:browser -- "$CANDIDATE_PAGE_URL"
           --evidence-dir acceptance-evidence/capability-loop
           --target-commit "${{ github.sha }}"
       - name: Verify unavailable runtime keeps the editor usable
         run: >-
-          npm run test:pages:browser:unavailable -- "${{ needs.candidate_deploy.outputs.page_url }}"
+          npm run test:pages:browser:unavailable -- "$CANDIDATE_PAGE_URL"
           --evidence-dir acceptance-evidence/unavailable-runtime
           --target-commit "${{ github.sha }}"
       - name: Verify selected-folder diagnostic stays user initiated
         run: >-
-          npm run test:pages:browser:folder -- "${{ needs.candidate_deploy.outputs.page_url }}"
+          npm run test:pages:browser:folder -- "$CANDIDATE_PAGE_URL"
           --evidence-dir acceptance-evidence/folder-diagnostic-stub
           --target-commit "${{ github.sha }}"
       - name: Upload browser acceptance evidence
@@ -99,8 +137,10 @@ jobs:
     if: >-
       always() && github.event.action != 'closed' &&
       github.event.pull_request.head.repo.full_name == github.repository &&
-      (needs.validate.result == 'failure' || needs.candidate_deploy.result == 'failure' || needs.verify_candidate.result == 'failure')
-    needs: [validate, candidate_deploy, verify_candidate]
+      (needs.validate.result == 'failure' || needs.candidate_build.result == 'failure' ||
+      (needs.candidate_deploy.result == 'failure' && needs.candidate_deploy_retry.result == 'failure') ||
+      needs.verify_candidate.result == 'failure')
+    needs: [validate, candidate_build, candidate_deploy, candidate_deploy_retry, verify_candidate]
     permissions:
       contents: read
       pages: write
@@ -114,17 +154,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.sha }}
+      - uses: actions/checkout@v4
+        with:
           ref: main
+          path: restored-main
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            restored-main/package-lock.json
       - run: npm ci
+      - run: npm ci
+        working-directory: restored-main
       - run: npm run build
+        working-directory: restored-main
+      - name: Record restored main commit
+        id: restored_main
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+        working-directory: restored-main
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: restored-main/dist
           name: rollback-github-pages
       - name: Restore main to GitHub Pages
         id: deployment
@@ -139,17 +193,17 @@ jobs:
         run: >-
           npm run test:pages:browser -- "${{ steps.deployment.outputs.page_url }}"
           --evidence-dir acceptance-evidence/capability-loop
-          --target-commit "${{ github.sha }}"
+          --target-commit "${{ steps.restored_main.outputs.sha }}"
       - name: Verify restored unavailable runtime keeps the editor usable
         run: >-
           npm run test:pages:browser:unavailable -- "${{ steps.deployment.outputs.page_url }}"
           --evidence-dir acceptance-evidence/unavailable-runtime
-          --target-commit "${{ github.sha }}"
+          --target-commit "${{ steps.restored_main.outputs.sha }}"
       - name: Verify restored selected-folder diagnostic stays user initiated
         run: >-
           npm run test:pages:browser:folder -- "${{ steps.deployment.outputs.page_url }}"
           --evidence-dir acceptance-evidence/folder-diagnostic-stub
-          --target-commit "${{ github.sha }}"
+          --target-commit "${{ steps.restored_main.outputs.sha }}"
       - name: Upload restored browser acceptance evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -174,17 +228,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.sha }}
+      - uses: actions/checkout@v4
+        with:
           ref: main
+          path: restored-main
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            restored-main/package-lock.json
       - run: npm ci
+      - run: npm ci
+        working-directory: restored-main
       - run: npm run build
+        working-directory: restored-main
+      - name: Record restored main commit
+        id: restored_main
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+        working-directory: restored-main
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: restored-main/dist
           name: restore-github-pages
       - name: Restore main after closing an unmerged pull request
         id: deployment
@@ -199,17 +267,17 @@ jobs:
         run: >-
           npm run test:pages:browser -- "${{ steps.deployment.outputs.page_url }}"
           --evidence-dir acceptance-evidence/capability-loop
-          --target-commit "${{ github.sha }}"
+          --target-commit "${{ steps.restored_main.outputs.sha }}"
       - name: Verify restored unavailable runtime keeps the editor usable
         run: >-
           npm run test:pages:browser:unavailable -- "${{ steps.deployment.outputs.page_url }}"
           --evidence-dir acceptance-evidence/unavailable-runtime
-          --target-commit "${{ github.sha }}"
+          --target-commit "${{ steps.restored_main.outputs.sha }}"
       - name: Verify restored selected-folder diagnostic stays user initiated
         run: >-
           npm run test:pages:browser:folder -- "${{ steps.deployment.outputs.page_url }}"
           --evidence-dir acceptance-evidence/folder-diagnostic-stub
-          --target-commit "${{ github.sha }}"
+          --target-commit "${{ steps.restored_main.outputs.sha }}"
       - name: Upload close-restoration browser acceptance evidence
         if: always()
         uses: actions/upload-artifact@v4
