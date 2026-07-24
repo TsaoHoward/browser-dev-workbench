@@ -124,10 +124,6 @@ jobs:
           npm run test:pages:browser:folder -- "$CANDIDATE_PAGE_URL"
           --evidence-dir acceptance-evidence/folder-diagnostic-stub
           --target-commit "${{ github.sha }}"
-      - name: Exercise rollback after candidate verification
-        run: |
-          echo "Intentional post-verification failure: exercising the main-restoration path."
-          exit 1
       - name: Upload browser acceptance evidence
         if: always()
         uses: actions/upload-artifact@v4
