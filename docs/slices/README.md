@@ -5,17 +5,17 @@ scope, dependencies, acceptance criteria, risks, validation, and exit conditions
 
 ## Current implementation target
 
-No slice is active. Slice 08 remains planned while its automation and permission boundaries are
-selected; Slice 04 remains planned after that governance work.
+[08 — Versioned work-item traceability](active/08-versioned-work-item-traceability.md) is active.
+It is implementing automation-first work-item records before the next browser-local Git slice.
 
 ## Approved sequence
 
-| Slice                                                                                   | Status  | Purpose                                                     |
-| --------------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------- |
-| [08 — Versioned work-item traceability](planned/08-versioned-work-item-traceability.md) | planned | Automate Git-traceable work-item relationships.             |
-| [04 — Browser-local version control](planned/04-browser-local-version-control.md)       | planned | Validate disconnected browser-local Git workflows.          |
-| [05 — Portable interchange](planned/05-portable-interchange.md)                         | planned | Add archives, patches/bundles, and selected-folder handoff. |
-| [06 — Optional remote synchronization](planned/06-optional-remote-synchronization.md)   | planned | Add remote import/fetch/push after local Git is proven.     |
+| Slice                                                                                  | Status  | Purpose                                                     |
+| -------------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------- |
+| [08 — Versioned work-item traceability](active/08-versioned-work-item-traceability.md) | active  | Automate Git-traceable work-item relationships.             |
+| [04 — Browser-local version control](planned/04-browser-local-version-control.md)      | planned | Validate disconnected browser-local Git workflows.          |
+| [05 — Portable interchange](planned/05-portable-interchange.md)                        | planned | Add archives, patches/bundles, and selected-folder handoff. |
+| [06 — Optional remote synchronization](planned/06-optional-remote-synchronization.md)  | planned | Add remote import/fetch/push after local Git is proven.     |
 
 ## Completed slices
 
