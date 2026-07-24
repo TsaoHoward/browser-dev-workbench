@@ -7,6 +7,8 @@
 | GitHub issue    | [#11](https://github.com/TsaoHoward/browser-dev-workbench/issues/11)     |
 | Requirement     | [REQ-0801](../requirements/REQ-0801-versioned-work-item-traceability.md) |
 | Slice           | [Slice 08](../../slices/active/08-versioned-work-item-traceability.md)   |
+| Delivery        | Pending Slice 08 completion PR                                           |
+| Projection      | pending                                                                  |
 | Last synced     | 2026-07-24                                                               |
 | Synchronization | Bootstrap exception — automation unavailable at intake                   |
 

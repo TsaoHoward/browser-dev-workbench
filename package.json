@@ -19,7 +19,9 @@
     "test:pages:browser:folder:dismissed": "node scripts/verify-pages-browser.mjs --native-folder dismissed --headed",
     "test:pages:browser:folder:selected": "node scripts/verify-pages-browser.mjs --native-folder selected --headed",
     "test:pages:browser:unavailable": "node scripts/verify-pages-browser.mjs --unavailable-runtime",
-    "validate": "npm run lint && npm run format:check && npm run check && npm run test:run && npm run build && npm run test:pages"
+    "work-items:generate": "node scripts/work-item-registry.mjs --write",
+    "work-items:check": "node scripts/work-item-registry.mjs --check",
+    "validate": "npm run lint && npm run format:check && npm run check && npm run test:run && npm run work-items:check && npm run build && npm run test:pages"
   },
   "dependencies": {
     "@webcontainer/api": "^1.6.4",
